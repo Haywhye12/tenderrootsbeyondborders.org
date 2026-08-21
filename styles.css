@@ -1562,3 +1562,551 @@ textarea.form-control {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   PAGE LOADER — Classical Dark Emerald Glassmorphism
+   ========================================================================== */
+
+/* Lock scroll while loading */
+body.is-loading {
+  overflow: hidden;
+}
+
+/* Full-viewport overlay */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              visibility 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.page-loader.loader-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Deep, rich backdrop — matches bg-dark with a subtle radial sweep */
+.loader-backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 40% 30%,
+    rgba(6, 78, 59, 0.55) 0%,
+    var(--bg-dark) 60%
+  );
+  background-color: var(--bg-dark);
+}
+
+/* Centred content — no card/box, floats freely over the backdrop */
+.loader-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  animation: loaderCardIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes loaderCardIn {
+  from { opacity: 0; transform: scale(0.88) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+/* ── Logo container with spinning rings ── */
+.loader-logo {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-logo-img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.55));
+  animation: loaderLogoPulse 2.4s ease-in-out infinite alternate;
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes loaderLogoPulse {
+  from { filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.4)); }
+  to   { filter: drop-shadow(0 0 22px rgba(16, 185, 129, 0.85)); }
+}
+
+/* Outer spinning ring */
+.loader-logo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--primary-emerald);
+  border-right-color: rgba(16, 185, 129, 0.25);
+  animation: loaderSpin 1.2s linear infinite;
+}
+
+/* Inner counter-spinning ring */
+.loader-logo-ring--2 {
+  inset: 10px;
+  border-top-color: transparent;
+  border-right-color: transparent;
+  border-bottom-color: var(--accent-gold);
+  border-left-color: rgba(245, 158, 11, 0.25);
+  animation: loaderSpinReverse 1.8s linear infinite;
+}
+
+@keyframes loaderSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes loaderSpinReverse {
+  to { transform: rotate(-360deg); }
+}
+
+/* ── Brand typography ── */
+.loader-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  text-align: center;
+}
+
+.loader-brand-name {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+}
+
+.loader-brand-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent-mint);
+}
+
+/* ── Scripture tagline ── */
+.loader-tagline {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── Progress bar ── */
+.loader-progress-wrap {
+  width: 220px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.loader-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary-emerald), var(--accent-mint));
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  transition: width 0.25s ease;
+}
+
+/* ── Three bouncing dots ── */
+.loader-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.loader-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary-emerald);
+  animation: loaderDotBounce 1.2s ease-in-out infinite;
+}
+
+.loader-dots span:nth-child(2) { animation-delay: 0.18s; }
+.loader-dots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes loaderDotBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1.2); opacity: 1;   }
+}
+
+/* ==========================================================================
+   MICRO-ANIMATIONS & MOTION SYSTEM
+   All GPU-accelerated — translate3d / opacity / transform only.
+   ========================================================================== */
+
+/* ── Ambient orb drift ── */
+.ambient-glow-1 { animation: orbDrift1 18s ease-in-out infinite alternate; }
+.ambient-glow-2 { animation: orbDrift2 22s ease-in-out infinite alternate; }
+.ambient-glow-3 { animation: orbDrift3 26s ease-in-out infinite alternate; }
+
+@keyframes orbDrift1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(60px, 40px, 0) scale(1.15); }
+}
+@keyframes orbDrift2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(-50px, -35px, 0) scale(1.1); }
+}
+@keyframes orbDrift3 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(45px, -50px, 0) scale(1.12); }
+}
+
+/* ── Hero content staggered entrance ── */
+.hero-badge   { animation: fadeSlideUp 0.7s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-title   { animation: fadeSlideUp 0.8s 0.38s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-subtitle { animation: fadeSlideUp 0.8s 0.52s cubic-bezier(0.16,1,0.3,1) both; }
+.hero-cta-group { animation: fadeSlideUp 0.8s 0.66s cubic-bezier(0.16,1,0.3,1) both; }
+.scroll-indicator { animation: fadeIn 1s 1.1s ease both; }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Page hero banner stagger (sub-pages) ── */
+.page-hero-content .breadcrumb    { animation: fadeSlideUp 0.7s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
+.page-hero-content .section-tag   { animation: fadeSlideUp 0.7s 0.25s cubic-bezier(0.16,1,0.3,1) both; }
+.page-hero-content .page-banner-title    { animation: fadeSlideUp 0.8s 0.38s cubic-bezier(0.16,1,0.3,1) both; }
+.page-hero-content .page-banner-subtitle { animation: fadeSlideUp 0.8s 0.52s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* ── Navbar brand logo micro-entrance ── */
+.navbar .brand-logo  { animation: fadeSlideRight 0.7s 0.1s cubic-bezier(0.16,1,0.3,1) both; }
+.navbar .nav-menu    { animation: fadeSlideDown 0.7s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+.navbar .nav-actions { animation: fadeSlideLeft  0.7s 0.3s cubic-bezier(0.16,1,0.3,1) both; }
+
+@keyframes fadeSlideRight {
+  from { opacity: 0; transform: translate3d(-20px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes fadeSlideLeft {
+  from { opacity: 0; transform: translate3d(20px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translate3d(0, -12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ── Buttons — ripple on click ── */
+.btn { overflow: hidden; }
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+}
+.btn:active::after {
+  transform: scale(2.5);
+  opacity: 1;
+  transition: none;
+}
+
+/* ── Nav link underline slide ── */
+.nav-link::after { transition: width 0.3s cubic-bezier(0.16,1,0.3,1); }
+
+/* ── Card glass — shine sweep on hover ── */
+.card-glass::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255,255,255,0.06) 50%,
+    transparent 100%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.card-glass:hover::after { left: 150%; }
+
+/* ── Section tag — pop-in on reveal ── */
+.section-tag {
+  transition: letter-spacing 0.4s ease, color 0.3s ease;
+}
+.reveal.active .section-tag,
+.section-header.reveal.active .section-tag {
+  animation: tagPop 0.5s 0.1s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes tagPop {
+  from { opacity: 0; transform: scale(0.8) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Stats numbers — scale-in when counted ── */
+.stat-number-wrap {
+  transition: transform 0.3s ease;
+}
+.stats-banner:hover .stat-number-wrap {
+  transform: scale(1.08);
+}
+.stat-item {
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.stat-item:hover { transform: translateY(-6px); }
+
+/* ── Program thumb image — zoom + brightness on hover ── */
+.program-thumb img {
+  transition: transform 0.65s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease;
+}
+.program-card:hover .program-thumb img {
+  transform: scale(1.1);
+  filter: brightness(1.1) saturate(1.15);
+}
+
+/* ── Team photo — desaturate → full color on hover ── */
+.team-photo-wrap img,
+.team-photo-wrap-sm img {
+  filter: saturate(0.75);
+  transition: transform 0.6s ease, filter 0.4s ease;
+}
+.team-card:hover .team-photo-wrap img,
+.team-card:hover .team-photo-wrap-sm img {
+  transform: scale(1.07);
+  filter: saturate(1.1) brightness(1.05);
+}
+
+/* ── Outreach gallery card — overlay slide-up ── */
+.outreach-card .outreach-img-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-emerald), var(--accent-gold));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.outreach-card:hover .outreach-img-wrap::after { transform: scaleX(1); }
+
+/* ── About image wrapper — border glow pulse on hover ── */
+.about-image-wrapper {
+  transition: box-shadow 0.4s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.about-image-wrapper:hover {
+  box-shadow: 0 0 0 2px var(--primary-emerald), var(--shadow-card);
+  transform: translateY(-4px);
+}
+
+/* ── Floating badge — continuous levitate ── */
+.about-floating-badge {
+  animation: floatSmooth 4s ease-in-out infinite alternate;
+}
+
+/* ── Scripture / blockquote — left border grow ── */
+.scripture-quote {
+  position: relative;
+  border-left-width: 3px;
+  transition: border-color 0.3s ease, padding-left 0.3s ease;
+}
+.scripture-quote:hover {
+  border-color: var(--accent-mint);
+  padding-left: 1.6rem;
+}
+
+/* ── Parallax breakout card — lift on hover ── */
+.parallax-breakout-card {
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1), box-shadow 0.4s ease;
+}
+.parallax-breakout-card:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow: 0 30px 70px rgba(0,0,0,0.9), var(--shadow-glow);
+}
+
+/* ── Footer links — underline slide ── */
+.footer-links a {
+  position: relative;
+  display: inline-block;
+}
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--primary-emerald);
+  transition: width 0.3s ease;
+}
+.footer-links a:hover::after { width: 100%; }
+
+/* ── Form control — focus border animate ── */
+.form-control {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.form-control:focus { transform: translateY(-2px); }
+
+/* ── Info icon — spin quarter turn on parent hover ── */
+.contact-info-item:hover .info-icon {
+  animation: iconWobble 0.5s ease;
+}
+@keyframes iconWobble {
+  0%   { transform: rotate(0deg) scale(1);    }
+  25%  { transform: rotate(-12deg) scale(1.1); }
+  50%  { transform: rotate(10deg) scale(1.15); }
+  75%  { transform: rotate(-6deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1);    }
+}
+
+/* ── Program button arrow — slide right on hover ── */
+.program-btn svg {
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.program-btn:hover svg { transform: translateX(5px); }
+
+/* ── Pulse dot — layered double ring ── */
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: rgba(16,185,129,0.25);
+  animation: ping 2s cubic-bezier(0,0,0.2,1) infinite;
+}
+
+/* ── Scroll indicator mouse wheel bounce ── */
+.scroll-indicator:hover .mouse-icon {
+  border-color: var(--primary-emerald);
+  box-shadow: 0 0 12px rgba(16,185,129,0.4);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ── Timeline dot — ripple ring ── */
+.timeline-dot::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-emerald);
+  opacity: 0;
+  animation: timelineRipple 2.5s ease-out infinite;
+}
+@keyframes timelineRipple {
+  0%  { opacity: 0.7; transform: scale(1); }
+  100%{ opacity: 0;   transform: scale(2.4); }
+}
+
+/* ── Filter buttons — active bounce ── */
+.filter-btn.active {
+  animation: filterBtnPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes filterBtnPop {
+  from { transform: scale(0.9); }
+  to   { transform: scale(1); }
+}
+
+/* ── Modal — scale spring entrance ── */
+.modal-overlay.active .modal-content {
+  animation: modalSpring 0.45s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes modalSpring {
+  from { opacity: 0; transform: scale(0.88) translateY(24px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── Toast — slide-up with bounce ── */
+.toast-notification.show {
+  animation: toastIn 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(60px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── Marquee shimmer on gradient text on hover ── */
+.gradient-text {
+  background-size: 200% auto;
+  transition: background-position 0.6s ease;
+}
+.gradient-text:hover {
+  background-position: right center;
+}
+
+/* ── Section divider line grow ── */
+.section::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 0 auto 0;
+  transition: width 1s ease;
+}
+.section.in-view::before { width: 80%; }
+
+/* ── Stagger children inside revealed grids ── */
+.programs-grid .program-card:nth-child(1) { transition-delay: 0.05s; }
+.programs-grid .program-card:nth-child(2) { transition-delay: 0.15s; }
+.programs-grid .program-card:nth-child(3) { transition-delay: 0.25s; }
+
+.stats-grid .stat-item:nth-child(1) { transition-delay: 0.0s; }
+.stats-grid .stat-item:nth-child(2) { transition-delay: 0.1s; }
+.stats-grid .stat-item:nth-child(3) { transition-delay: 0.2s; }
+.stats-grid .stat-item:nth-child(4) { transition-delay: 0.3s; }
+
+/* ── FAQ question — hover background slide ── */
+.faq-question {
+  transition: color 0.25s ease, background 0.25s ease;
+}
+.faq-question:hover {
+  color: var(--accent-mint);
+  background: rgba(16,185,129,0.06);
+}
+
+/* ── Official logo spin-on-load ── */
+@keyframes logoEntrance {
+  0%   { opacity: 0; transform: rotate(-15deg) scale(0.7); }
+  70%  { transform: rotate(5deg) scale(1.06); }
+  100% { opacity: 1; transform: rotate(0deg) scale(1); }
+}
+.official-logo-img {
+  animation: logoEntrance 0.9s 0.05s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+
+/* ── Respect reduce-motion preference ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

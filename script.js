@@ -3,6 +3,67 @@
  * GPU Parallax Scrolling, 3D Card Hover Tilt, Lightbox Gallery Slider & Modal Engine
  */
 
+/* ==========================================================================
+   PAGE LOADER — init runs immediately (before DOMContentLoaded) so the
+   overlay is visible the instant the parser reaches this script tag.
+   ========================================================================== */
+(function initPageLoader() {
+  const loader   = document.getElementById('page-loader');
+  const bar      = loader ? loader.querySelector('.loader-progress-bar') : null;
+
+  if (!loader) return;
+
+  // Lock scroll
+  document.body.classList.add('is-loading');
+
+  // Animate progress bar in two phases:
+  //   0 → 75 % while DOM is loading (fast)
+  //   75 → 100 % once window fully loads (instant complete + dismiss)
+  let progress  = 0;
+  const FPS     = 60;
+  const TICK    = 1000 / FPS;
+  const RATE    = 1.4;   // % per frame during DOM phase — reaches ~75 % in ≈ 900 ms
+
+  const tickProgress = () => {
+    if (progress >= 75) return;            // pause at 75 until window.load
+    progress = Math.min(progress + RATE, 75);
+    if (bar) bar.style.width = progress + '%';
+    if (progress < 75) setTimeout(tickProgress, TICK);
+  };
+
+  setTimeout(tickProgress, 80);            // short delay so the card entry anim plays first
+
+  // Dismiss helper — fills bar to 100 then fades the overlay out
+  const dismissLoader = () => {
+    progress = 100;
+    if (bar) bar.style.width = '100%';
+
+    // Small pause so the completed bar is visible for a beat
+    setTimeout(() => {
+      loader.classList.add('loader-hidden');
+      document.body.classList.remove('is-loading');
+
+      // Remove from DOM entirely after the CSS transition ends (0.65 s)
+      loader.addEventListener('transitionend', () => {
+        if (loader.parentNode) loader.parentNode.removeChild(loader);
+      }, { once: true });
+    }, 320);
+  };
+
+  // Ideal case — wait for every asset (images, fonts, etc.)
+  if (document.readyState === 'complete') {
+    dismissLoader();
+  } else {
+    window.addEventListener('load', dismissLoader, { once: true });
+
+    // Hard safety net — never leave the loader visible beyond 4 seconds
+    setTimeout(dismissLoader, 4000);
+  }
+}());
+
+/* ==========================================================================
+   MAIN CONTROLLER — initialises all page features after DOM is ready
+   ========================================================================== */
 document.addEventListener('DOMContentLoaded', () => {
   initParallaxEngine();
   init3DTiltCards();
@@ -18,6 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaqAccordion();
   initCopyPills();
   initKeyboardNav();
+
+  /* ── Motion layer ── */
+  initMidPageParallax();
+  initSectionInView();
+  initMagneticButtons();
+  initHeroParticles();
+  initImageRevealTilt();
+  initStaggeredReveal();
+  initCursorGlow();
 });
 
 /* Helper to detect if script is loaded from inside a subfolder */
@@ -728,4 +798,245 @@ function initKeyboardNav() {
       }
     }
   });
+}
+
+/* ==========================================================================
+   14. MID-PAGE PARALLAX — breakout sections & page hero background layers
+   ========================================================================== */
+function initMidPageParallax() {
+  const breakoutLayers = document.querySelectorAll('.parallax-bg-layer');
+  const pageHeroBg     = document.querySelector('.page-parallax-bg');
+
+  if (!breakoutLayers.length && !pageHeroBg) return;
+
+  let raf = false;
+  let lastScroll = window.scrollY;
+
+  window.addEventListener('scroll', () => {
+    lastScroll = window.scrollY;
+    if (!raf) {
+      raf = true;
+      requestAnimationFrame(() => {
+        breakoutLayers.forEach(layer => {
+          const rect   = layer.parentElement.getBoundingClientRect();
+          const center = rect.top + rect.height / 2;
+          const offset = (window.innerHeight / 2 - center) * 0.22;
+          layer.style.transform = `translate3d(0, ${offset}px, 0)`;
+        });
+
+        if (pageHeroBg) {
+          pageHeroBg.style.transform = `translate3d(0, ${lastScroll * 0.28}px, 0)`;
+        }
+
+        raf = false;
+      });
+    }
+  }, { passive: true });
+}
+
+/* ==========================================================================
+   15. SECTION IN-VIEW MARKER — adds .in-view for CSS divider lines etc.
+   ========================================================================== */
+function initSectionInView() {
+  const sections = document.querySelectorAll('.section');
+  if (!sections.length) return;
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('in-view');
+    });
+  }, { threshold: 0.08 });
+
+  sections.forEach(s => obs.observe(s));
+}
+
+/* ==========================================================================
+   16. MAGNETIC BUTTONS — subtle cursor-attraction on primary CTAs
+   ========================================================================== */
+function initMagneticButtons() {
+  /* Skip on touch devices */
+  if (window.matchMedia('(hover: none)').matches) return;
+
+  const magnets = document.querySelectorAll('.btn-primary, .btn-glass');
+
+  magnets.forEach(btn => {
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const dx = e.clientX - (rect.left + rect.width  / 2);
+      const dy = e.clientY - (rect.top  + rect.height / 2);
+      btn.style.transform = `translate(${dx * 0.18}px, ${dy * 0.22}px) scale(1.04)`;
+    });
+
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = '';
+      btn.style.transition = 'transform 0.45s cubic-bezier(0.16,1,0.3,1)';
+      setTimeout(() => { btn.style.transition = ''; }, 460);
+    });
+  });
+}
+
+/* ==========================================================================
+   17. HERO FLOATING PARTICLES — tiny emerald sparks that drift upward
+   ========================================================================== */
+function initHeroParticles() {
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+
+  const PARTICLE_COUNT = 22;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = `
+    position:absolute; inset:0; width:100%; height:100%;
+    pointer-events:none; z-index:2; opacity:0.55;
+  `;
+  hero.style.position = 'relative';
+  hero.appendChild(canvas);
+
+  const ctx  = canvas.getContext('2d');
+  const DPR  = Math.min(window.devicePixelRatio || 1, 2);
+
+  const resize = () => {
+    canvas.width  = hero.offsetWidth  * DPR;
+    canvas.height = hero.offsetHeight * DPR;
+    ctx.scale(DPR, DPR);
+  };
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  const W = () => canvas.width  / DPR;
+  const H = () => canvas.height / DPR;
+
+  const COLORS = ['rgba(16,185,129,', 'rgba(167,243,208,', 'rgba(245,158,11,'];
+
+  const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+    x     : Math.random() * W(),
+    y     : Math.random() * H(),
+    r     : Math.random() * 2.2 + 0.6,
+    vx    : (Math.random() - 0.5) * 0.3,
+    vy    : -(Math.random() * 0.55 + 0.2),
+    alpha : Math.random() * 0.55 + 0.15,
+    color : COLORS[Math.floor(Math.random() * COLORS.length)],
+  }));
+
+  const draw = () => {
+    ctx.clearRect(0, 0, W(), H());
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.color + p.alpha + ')';
+      ctx.fill();
+
+      p.x += p.vx;
+      p.y += p.vy;
+      p.alpha -= 0.0012;
+
+      if (p.y < -10 || p.alpha <= 0) {
+        p.x     = Math.random() * W();
+        p.y     = H() + 10;
+        p.alpha = Math.random() * 0.55 + 0.15;
+        p.vy    = -(Math.random() * 0.55 + 0.2);
+        p.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+    });
+    requestAnimationFrame(draw);
+  };
+  draw();
+}
+
+/* ==========================================================================
+   18. IMAGE REVEAL TILT — subtle perspective tilt on all content images
+       as the mouse moves over their containing section.
+   ========================================================================== */
+function initImageRevealTilt() {
+  if (window.matchMedia('(hover: none)').matches) return;
+
+  const wrappers = document.querySelectorAll('.about-image-wrapper, .program-thumb, .outreach-img-wrap');
+
+  wrappers.forEach(wrap => {
+    wrap.addEventListener('mousemove', (e) => {
+      const rect  = wrap.getBoundingClientRect();
+      const x     = (e.clientX - rect.left) / rect.width  - 0.5;
+      const y     = (e.clientY - rect.top)  / rect.height - 0.5;
+      wrap.style.transform = `perspective(700px) rotateY(${x * 7}deg) rotateX(${-y * 6}deg) scale3d(1.02,1.02,1.02)`;
+    });
+
+    wrap.addEventListener('mouseleave', () => {
+      wrap.style.transform = '';
+      wrap.style.transition = 'transform 0.55s cubic-bezier(0.16,1,0.3,1)';
+      setTimeout(() => { wrap.style.transition = ''; }, 560);
+    });
+  });
+}
+
+/* ==========================================================================
+   19. STAGGERED REVEAL — adds per-child animation-delay so grid items
+       pop in one-by-one instead of all at once.
+   ========================================================================== */
+function initStaggeredReveal() {
+  const grids = document.querySelectorAll(
+    '.programs-grid, .team-grid, [style*="grid-template-columns"]'
+  );
+
+  grids.forEach(grid => {
+    const children = Array.from(grid.querySelectorAll('.reveal, .card-glass'));
+    children.forEach((child, i) => {
+      /* Only set if not already staggered by an inline style */
+      if (!child.style.animationDelay) {
+        child.style.transitionDelay = `${i * 0.08}s`;
+      }
+    });
+  });
+
+  /* Stat items scale-in stagger */
+  document.querySelectorAll('.stat-item').forEach((item, i) => {
+    item.classList.add('reveal');
+    item.style.transitionDelay = `${i * 0.1}s`;
+  });
+}
+
+/* ==========================================================================
+   20. CURSOR GLOW — a soft emerald spotlight that follows the cursor
+       only on desktop, stays subtle so it doesn't distract.
+   ========================================================================== */
+function initCursorGlow() {
+  if (window.matchMedia('(hover: none)').matches) return;
+
+  const glow = document.createElement('div');
+  glow.style.cssText = `
+    position: fixed;
+    top: 0; left: 0;
+    width: 340px; height: 340px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(16,185,129,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 1;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.4s ease;
+    will-change: transform;
+  `;
+  document.body.appendChild(glow);
+
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  let running = false;
+
+  document.addEventListener('mousemove', (e) => {
+    mx = e.clientX;
+    my = e.clientY;
+    if (!running) {
+      running = true;
+      requestAnimationFrame(function loop() {
+        cx += (mx - cx) * 0.09;
+        cy += (my - cy) * 0.09;
+        glow.style.transform = `translate3d(${cx - 170}px, ${cy - 170}px, 0)`;
+        if (Math.abs(mx - cx) > 0.5 || Math.abs(my - cy) > 0.5) {
+          requestAnimationFrame(loop);
+        } else {
+          running = false;
+        }
+      });
+    }
+  }, { passive: true });
+
+  /* Hide glow when cursor leaves the window */
+  document.addEventListener('mouseleave', () => { glow.style.opacity = '0'; });
+  document.addEventListener('mouseenter', () => { glow.style.opacity = '1'; });
 }
