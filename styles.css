@@ -58,6 +58,7 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   color-scheme: dark;
+  overflow-x: hidden; /* Prevent horizontal scroll without clipping fixed elements */
 }
 
 body {
@@ -66,7 +67,6 @@ body {
   color: var(--text-main);
   line-height: 1.65;
   overflow-x: hidden;
-  position: relative;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -148,9 +148,10 @@ h1, h2, h3, h4, h5, h6 {
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 9000;
   padding: 1.25rem 2rem;
   transition: all var(--transition-smooth);
+  box-sizing: border-box;
 }
 
 .navbar.scrolled {
@@ -164,10 +165,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .nav-container {
   max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
 }
 
 .brand-logo {
@@ -297,24 +301,33 @@ h1, h2, h3, h4, h5, h6 {
   color: #FFFFFF;
 }
 
+/* Drawer header is hidden on desktop — only visible in mobile slide-out */
+.nav-drawer-header {
+  display: none;
+}
+
 .mobile-toggle {
   display: none;
   flex-direction: column;
-  justify-content: space-between;
-  width: 30px;
-  height: 20px;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
   background: transparent;
   border: none;
   cursor: pointer;
   z-index: 1001;
+  padding: 8px;
 }
 
 .mobile-toggle span {
-  width: 100%;
+  width: 22px;
   height: 2px;
   background-color: var(--text-main);
   border-radius: var(--radius-full);
   transition: all var(--transition-smooth);
+  display: block;
 }
 
 /* ==========================================================================
@@ -1282,6 +1295,35 @@ textarea.form-control {
   min-height: 140px;
 }
 
+/* ==========================================================================
+   RESPONSIVE GRID UTILITY CLASSES
+   (Desktop base — mobile overrides live in the 768px breakpoint)
+   ========================================================================== */
+
+/* Team member cards grid */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Outreach / photo cards grid */
+.outreach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Mission / value cards grid */
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Contact form first / last name row */
+.form-name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .footer {
   background: #040806;
   border-top: 1px solid var(--glass-border);
@@ -1544,22 +1586,268 @@ textarea.form-control {
     background: rgba(7, 13, 11, 0.96);
     backdrop-filter: blur(20px);
     flex-direction: column;
-    justify-content: center;
-    padding: 3rem;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 2rem;
+    overflow-y: auto;
     transition: right var(--transition-smooth);
     border-left: 1px solid var(--glass-border);
+    z-index: 1000;
   }
   
   .nav-menu.active {
     right: 0;
   }
-  
-  .mobile-toggle {
+
+  /* Nav links fill the drawer width for easier tapping */
+  .nav-menu > li:not(.nav-drawer-header) {
+    width: 100%;
+  }
+
+  .nav-menu > li:not(.nav-drawer-header) .nav-link {
+    display: block;
+    padding: 0.85rem 0;
+    font-size: 1.05rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    width: 100%;
+  }
+
+  /* Drawer header — logo + close button shown at top of open menu */
+  .nav-drawer-header {
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 1rem;
+    list-style: none;
+  }
+
+  .nav-drawer-close {
+    background: none;
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .nav-drawer-close:hover {
+    color: #fff;
+    border-color: var(--primary-emerald);
   }
 
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  /* Section padding */
+  .section {
+    padding: 4rem 1.25rem;
+  }
+
+  /* Hero padding */
+  .hero {
+    padding-top: 6rem;
+    padding-bottom: 3rem;
+  }
+
+  /* Page-specific parallax hero */
+  .page-hero-parallax {
+    padding: 6rem 1.25rem 3rem;
+  }
+
+  /* Parallax breakout section */
+  .section-parallax-breakout {
+    min-height: auto;
+    padding: 3.5rem 1.25rem;
+  }
+
+  /* Parallax breakout card */
+  .parallax-breakout-card {
+    padding: 2rem 1.25rem;
+  }
+
+  /* Card glass padding */
+  .card-glass {
+    padding: 1.5rem;
+  }
+
+  /* About image — let it size naturally on mobile */
+  .about-image-wrapper img {
+    height: auto;
+    max-height: 280px;
+    object-fit: cover;
+  }
+
+  /* Hide "Get Involved" nav button on small screens */
+  .nav-actions {
+    display: none;
+  }
+
+  /* Ensure navbar doesn't overflow */
+  .navbar {
+    padding: 0.85rem 1.25rem;
+  }
+
+  .nav-container {
+    gap: 0;
+  }
+
+  /* Hamburger touch target */
+  .mobile-toggle {
+    display: flex !important;
+    padding: 8px;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  /* Prevent brand logo from growing too wide and squeezing hamburger */
+  .brand-logo {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .brand-text-wrap {
+    overflow: hidden;
+  }
+
+  .brand-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-tag {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Scale logo down slightly so brand text fits */
+  .official-logo-img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand-name {
+    font-size: 1rem;
+  }
+
+  .brand-tag {
+    font-size: 0.65rem;
+  }
+
+  /* Stats grid gap */
+  .stats-grid {
+    gap: 1.5rem;
+  }
+
+  /* Footer grid gap */
+  .footer-grid {
+    gap: 2rem;
+  }
+
+  /* Programs grid — force single column */
+  .programs-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Inline grids used on team, outreach, mission — override via class */
+  .team-grid,
+  .outreach-grid,
+  .mission-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Form name row — stack on mobile */
+  .form-name-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Clamp large inline headings */
+  .cta-heading-lg {
+    font-size: clamp(1.5rem, 5vw, 2.4rem) !important;
+  }
+
+  /* FAQ answer max-height safety */
+  .faq-answer.active {
+    max-height: 600px;
+  }
+
+  /* Timeline card padding */
+  .timeline-item .card-glass {
+    padding: 1.25rem;
+  }
+}
+
+/* ==========================================================================
+   EXTRA SMALL SCREENS (≤ 480px)
+   ========================================================================== */
+@media (max-width: 480px) {
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  .hero {
+    padding-top: 5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  .page-hero-parallax {
+    padding: 5rem 1rem 2.5rem;
+  }
+
+  .card-glass {
+    padding: 1.25rem;
+  }
+
+  .parallax-breakout-card {
+    padding: 1.75rem 1rem;
+  }
+
+  .footer-grid {
+    gap: 1.5rem;
+  }
+
+  /* Ensure no element causes horizontal scroll */
+  img, video, iframe {
+    max-width: 100%;
+  }
+
+  /* Navbar — tighten padding, hide brand text, keep logo + hamburger */
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .brand-text-wrap {
+    display: none;
+  }
+
+  .official-logo-img {
+    width: 34px;
+    height: 34px;
   }
 }
 

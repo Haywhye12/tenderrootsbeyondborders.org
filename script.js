@@ -766,11 +766,19 @@ function initContactForm() {
 function initMobileMenu() {
   const toggle = document.querySelector('.mobile-toggle');
   const menu = document.querySelector('.nav-menu');
+  const closeBtn = document.querySelector('.nav-drawer-close');
 
   if (toggle && menu) {
     toggle.addEventListener('click', () => {
       menu.classList.toggle('active');
     });
+
+    // Close button inside drawer
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        menu.classList.remove('active');
+      });
+    }
 
     document.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', () => {

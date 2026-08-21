@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -30,7 +30,7 @@
   <meta name="twitter:description" content="Explore photo galleries and stories from our humanitarian missions in Nigeria and Malawi.">
   <meta name="twitter:image" content="https://tenderrootsbeyondborders.org/images/tr_logo.webp">
 
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../styles.css?v=4">
 
   <!-- Schema.org JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -125,6 +125,16 @@
       </a>
 
       <ul class="nav-menu">
+        <li class="nav-drawer-header">
+          <a href="../" class="brand-logo">
+            <img src="../images/tr_logo.webp" alt="Tender Roots Logo" class="official-logo-img">
+            <div class="brand-text-wrap">
+              <span class="brand-name">Tender Roots</span>
+              <span class="brand-tag">Beyond Borders Inc.</span>
+            </div>
+          </a>
+          <button class="nav-drawer-close" aria-label="Close navigation menu">&#x2715;</button>
+        </li>
         <li><a href="../" class="nav-link">Home</a></li>
         <li><a href="../about/" class="nav-link">About Us</a></li>
         <li><a href="../programs/" class="nav-link">Programs</a></li>
@@ -138,12 +148,12 @@
           <span>Get Involved</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </a>
-        <button class="mobile-toggle" aria-label="Toggle navigation menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
       </div>
+      <button class="mobile-toggle" aria-label="Toggle navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </header>
 
@@ -175,7 +185,7 @@
         <button class="filter-btn" data-media-cat="sponsorship">Educational Support (1)</button>
       </div>
 
-      <div class="outreach-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+      <div class="outreach-grid" style="gap: 2rem;">
         
         <!-- Project 1: Ogijo -->
         <div class="card-glass outreach-card reveal" data-media-cat="nigeria" data-mission="ogijo">

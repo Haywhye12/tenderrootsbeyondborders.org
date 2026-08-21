@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -30,7 +30,7 @@
   <meta name="twitter:description" content="Learn about Tender Roots Beyond Borders Inc. (TRBB), an IRS-approved 501(c)(3) nonprofit dedicated to humanitarian service.">
   <meta name="twitter:image" content="https://tenderrootsbeyondborders.org/images/tr_logo.webp">
 
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="../styles.css?v=4">
 
   <!-- Schema.org JSON-LD Structured Data -->
   <script type="application/ld+json">
@@ -125,6 +125,16 @@
       </a>
 
       <ul class="nav-menu">
+        <li class="nav-drawer-header">
+          <a href="../" class="brand-logo">
+            <img src="../images/tr_logo.webp" alt="Tender Roots Logo" class="official-logo-img">
+            <div class="brand-text-wrap">
+              <span class="brand-name">Tender Roots</span>
+              <span class="brand-tag">Beyond Borders Inc.</span>
+            </div>
+          </a>
+          <button class="nav-drawer-close" aria-label="Close navigation menu">&#x2715;</button>
+        </li>
         <li><a href="../" class="nav-link">Home</a></li>
         <li><a href="../about/" class="nav-link active">About Us</a></li>
         <li><a href="../programs/" class="nav-link">Programs</a></li>
@@ -138,12 +148,12 @@
           <span>Get Involved</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </a>
-        <button class="mobile-toggle" aria-label="Toggle navigation menu">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
       </div>
+      <button class="mobile-toggle" aria-label="Toggle navigation menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </header>
 
@@ -242,7 +252,7 @@
   <!-- Detailed Mission & Values -->
   <section class="section">
     <div class="container">
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem;">
+      <div class="mission-grid" style="gap: 2rem;">
         
         <!-- Mission Card -->
         <div class="card-glass reveal">
@@ -347,7 +357,7 @@
   <section class="section" style="background: linear-gradient(135deg, rgba(6, 78, 59, 0.45), rgba(7, 13, 11, 0.95));">
     <div class="container" style="text-align: center; max-width: 800px;">
       <span class="section-tag reveal">TAKE ACTION</span>
-      <h2 style="font-size: 2.4rem; margin-bottom: 1rem;" class="gradient-text reveal">Be a Beacon of Hope</h2>
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.4rem); margin-bottom: 1rem;" class="gradient-text reveal">Be a Beacon of Hope</h2>
       <p style="color: var(--text-muted); font-size: 1.1rem; margin-bottom: 2rem;" class="reveal">
         Join us to empower the less-privileged, orphans, widows, and the socially challenged in our society. Together, we can inspire lives to sprout again.
       </p>
