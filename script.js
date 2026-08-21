@@ -968,8 +968,10 @@ function initImageRevealTilt() {
 }
 
 /* ==========================================================================
-   19. STAGGERED REVEAL — adds per-child animation-delay so grid items
-       pop in one-by-one instead of all at once.
+   19. STAGGERED REVEAL — adds per-child transition-delay so grid items
+       cascade in one-by-one instead of all at once.
+       NOTE: we only set transitionDelay here — never add .reveal late
+       since the IntersectionObserver has already catalogued elements.
    ========================================================================== */
 function initStaggeredReveal() {
   const grids = document.querySelectorAll(
@@ -979,17 +981,10 @@ function initStaggeredReveal() {
   grids.forEach(grid => {
     const children = Array.from(grid.querySelectorAll('.reveal, .card-glass'));
     children.forEach((child, i) => {
-      /* Only set if not already staggered by an inline style */
-      if (!child.style.animationDelay) {
+      if (!child.style.animationDelay && !child.style.transitionDelay) {
         child.style.transitionDelay = `${i * 0.08}s`;
       }
     });
-  });
-
-  /* Stat items scale-in stagger */
-  document.querySelectorAll('.stat-item').forEach((item, i) => {
-    item.classList.add('reveal');
-    item.style.transitionDelay = `${i * 0.1}s`;
   });
 }
 

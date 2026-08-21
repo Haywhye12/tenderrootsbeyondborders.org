@@ -1851,6 +1851,7 @@ body.is-loading {
   transform: skewX(-20deg);
   transition: left 0.6s ease;
   pointer-events: none;
+  z-index: 0;  /* behind all content */
 }
 .card-glass:hover::after { left: 150%; }
 
@@ -2062,14 +2063,20 @@ body.is-loading {
 }
 
 /* ── Section divider line grow ── */
+.section {
+  position: relative; /* needed for ::before absolute positioning */
+}
 .section::before {
   content: '';
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
-  margin: 0 auto 0;
   transition: width 1s ease;
+  pointer-events: none;
 }
 .section.in-view::before { width: 80%; }
 
