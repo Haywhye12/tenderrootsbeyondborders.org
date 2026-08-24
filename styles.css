@@ -47,6 +47,12 @@
   --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* Global: prevent long unbreakable strings from overflowing any container */
+a, p, h1, h2, h3, h4, h5, h6, span, li, td, th {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Base Resets & Smooth Scroll */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -1243,6 +1249,19 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.03);
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
+}
+
+/* Text wrapper inside contact item must shrink below content size */
+.contact-info-item > div {
+  min-width: 0;
+  flex: 1;
+}
+
+/* Allow long email/phone strings to wrap */
+.contact-info-item p,
+.contact-info-item h5 {
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .info-icon {
