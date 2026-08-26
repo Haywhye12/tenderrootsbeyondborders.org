@@ -80,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopyPills();
   initKeyboardNav();
   initFlutterwaveDonations();
+  initCookieConsent();
 
   /* ── Motion layer ── */
   initMidPageParallax();
@@ -1235,4 +1236,55 @@ function initFlutterwaveDonations() {
     });
   }
 }
+
+/* ==========================================================================
+   22. COOKIE CONSENT BANNER CONTROLLER
+   ========================================================================== */
+function initCookieConsent() {
+  const existingConsent = localStorage.getItem('trbb_cookie_consent');
+
+  // Inject Cookie Banner HTML if not present
+  let banner = document.getElementById('cookie-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'cookie-banner';
+    banner.className = 'cookie-banner-wrap';
+    banner.innerHTML = `
+      <div class="cookie-banner-card">
+        <div class="cookie-text-wrap">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" style="flex-shrink: 0;"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5 10 10 0 0 0 0 0z"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg>
+          <p>We use essential cookies and payment security technologies to ensure an optimal experience. Learn more in our <a href="${fixAssetPath('privacy/')}">Privacy &amp; Cookie Policy</a>.</p>
+        </div>
+        <div class="cookie-actions">
+          <button type="button" id="cookie-accept-btn" class="cookie-btn cookie-btn-primary">Accept All</button>
+          <button type="button" id="cookie-decline-btn" class="cookie-btn cookie-btn-outline">Essential Only</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(banner);
+  }
+
+  const showBanner = () => banner.classList.add('show');
+  const hideBanner = () => banner.classList.remove('show');
+
+  if (!existingConsent) {
+    setTimeout(showBanner, 1500);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'cookie-accept-btn') {
+      localStorage.setItem('trbb_cookie_consent', 'accepted');
+      hideBanner();
+    }
+    if (e.target && e.target.id === 'cookie-decline-btn') {
+      localStorage.setItem('trbb_cookie_consent', 'essential');
+      hideBanner();
+    }
+    if (e.target && (e.target.classList.contains('open-cookie-settings') || e.target.getAttribute('href') === '#cookies')) {
+      e.preventDefault();
+      showBanner();
+    }
+  });
+}
+
 
