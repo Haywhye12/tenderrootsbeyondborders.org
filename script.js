@@ -79,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaqAccordion();
   initCopyPills();
   initKeyboardNav();
+  initFlutterwaveDonations();
 
   /* ── Motion layer ── */
   initMidPageParallax();
@@ -609,6 +610,55 @@ const missionGalleries = {
       "images/IMG-20241207-WA0018.webp",
       "images/IMG-20241207-WA0019.webp"
     ]
+  },
+  nail_malawi: {
+    title: "Nail Making & Care Vocational Class",
+    location: "Blantyre, Malawi",
+    images: [
+      "images/nail_malawi_1.webp",
+      "images/nail_malawi_2.webp",
+      "images/nail_malawi_3.webp",
+      "images/nail_malawi_4.webp",
+      "images/nail_malawi_5.webp",
+      "images/nail_malawi_6.webp",
+      "images/nail_malawi_7.webp",
+      "images/nail_malawi_8.webp",
+      "images/nail_malawi_9.webp"
+    ]
+  },
+  hair_malawi: {
+    title: "Hair Styling & Care Vocational Class",
+    location: "Blantyre, Malawi",
+    images: [
+      "images/hair_malawi_1.webp",
+      "images/hair_malawi_2.webp",
+      "images/hair_malawi_3.webp",
+      "images/hair_malawi_4.webp",
+      "images/hair_malawi_5.webp",
+      "images/hair_malawi_6.webp",
+      "images/hair_malawi_7.webp"
+    ]
+  },
+  soap_malawi: {
+    title: "Soap Making & Production Vocational Class",
+    location: "Blantyre, Malawi",
+    images: [
+      "images/soap_malawi_1.webp",
+      "images/soap_malawi_2.webp",
+      "images/soap_malawi_3.webp",
+      "images/soap_malawi_4.webp",
+      "images/soap_malawi_5.webp",
+      "images/soap_malawi_6.webp",
+      "images/soap_malawi_7.webp",
+      "images/soap_malawi_8.webp",
+      "images/soap_malawi_9.webp",
+      "images/soap_malawi_10.webp",
+      "images/soap_malawi_11.webp",
+      "images/soap_malawi_12.webp",
+      "images/soap_malawi_13.webp",
+      "images/soap_malawi_14.webp",
+      "images/soap_malawi_15.webp"
+    ]
   }
 };
 
@@ -1043,3 +1093,146 @@ function initCursorGlow() {
   document.addEventListener('mouseleave', () => { glow.style.opacity = '0'; });
   document.addEventListener('mouseenter', () => { glow.style.opacity = '1'; });
 }
+
+/* ==========================================================================
+   21. FLUTTERWAVE DONATION GATEWAY CONTROLLER
+   ========================================================================== */
+function initFlutterwaveDonations() {
+  const modal = document.getElementById('donation-modal');
+  if (!modal) return;
+
+  const closeBtn = modal.querySelector('.donation-modal-close');
+  const amountChips = modal.querySelectorAll('.amount-chip');
+  const customAmountWrap = document.getElementById('custom-amount-wrap');
+  const customAmountInput = document.getElementById('donation-custom-amount');
+  const currencyPills = modal.querySelectorAll('.currency-pill');
+  const submitBtn = document.getElementById('flutterwave-submit-btn');
+  const programSelect = document.getElementById('donation-program-select');
+  const donorNameInput = document.getElementById('donation-donor-name');
+  const donorEmailInput = document.getElementById('donation-donor-email');
+
+  let selectedCurrency = 'USD';
+  let selectedAmount = '50';
+  const currencySymbols = { USD: '$', NGN: '₦', MWK: 'MK', GBP: '£', EUR: '€' };
+
+  // Open Modal trigger for any .open-donate-modal or [href="#donate"] button
+  document.querySelectorAll('.open-donate-modal, a[href="#donate"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  });
+
+  // Close modal
+  const closeModal = () => {
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  };
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // Currency selection
+  currencyPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      currencyPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedCurrency = pill.getAttribute('data-currency');
+      updateSubmitBtnText();
+    });
+  });
+
+  // Amount chip selection
+  amountChips.forEach(chip => {
+    chip.addEventListener('click', () => {
+      amountChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const amt = chip.getAttribute('data-amount');
+      if (amt === 'custom') {
+        if (customAmountWrap) customAmountWrap.style.display = 'block';
+        if (customAmountInput) customAmountInput.focus();
+        selectedAmount = customAmountInput ? customAmountInput.value : '';
+      } else {
+        if (customAmountWrap) customAmountWrap.style.display = 'none';
+        selectedAmount = amt;
+      }
+      updateSubmitBtnText();
+    });
+  });
+
+  if (customAmountInput) {
+    customAmountInput.addEventListener('input', () => {
+      selectedAmount = customAmountInput.value;
+      updateSubmitBtnText();
+    });
+  }
+
+  function updateSubmitBtnText() {
+    if (!submitBtn) return;
+    const symbol = currencySymbols[selectedCurrency] || '$';
+    const finalAmt = selectedAmount ? `${symbol}${selectedAmount}` : '';
+    submitBtn.innerHTML = `<span>Proceed to Pay ${finalAmt} with Flutterwave</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+  }
+
+  // Submit payment to Flutterwave SDK
+  if (submitBtn) {
+    submitBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+
+      const name = donorNameInput ? donorNameInput.value.trim() : '';
+      const email = donorEmailInput ? donorEmailInput.value.trim() : '';
+      const program = programSelect ? programSelect.value : 'General Mission Fund';
+
+      if (!name) {
+        alert('Please enter your full name.');
+        if (donorNameInput) donorNameInput.focus();
+        return;
+      }
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        if (donorEmailInput) donorEmailInput.focus();
+        return;
+      }
+
+      const numericAmount = parseFloat(selectedAmount);
+      if (!numericAmount || numericAmount <= 0) {
+        alert('Please select or enter a valid donation amount.');
+        return;
+      }
+
+      if (typeof FlutterwaveCheckout !== 'function') {
+        alert('Flutterwave payment gateway is loading. Please check your internet connection and try again.');
+        return;
+      }
+
+      // Trigger Flutterwave Payment Modal
+      FlutterwaveCheckout({
+        public_key: 'FLWPUBK_TEST-a720df545b739665bc751bb9e54d6824-X', // Configurable Public Key Placeholder
+        tx_ref: 'TRBB-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        amount: numericAmount,
+        currency: selectedCurrency,
+        payment_options: 'card, mobilemoney, ussd, banktransfer',
+        customer: {
+          email: email,
+          name: name
+        },
+        customizations: {
+          title: 'Tender Roots Beyond Borders Inc.',
+          description: `Donation: ${program}`,
+          logo: fixAssetPath('images/tr_logo.webp')
+        },
+        callback: function (data) {
+          console.log('Payment complete', data);
+          closeModal();
+          alert(`Thank you, ${name}! Your donation of ${selectedCurrency} ${numericAmount} to Tender Roots Beyond Borders Inc. was successful.\nTransaction Ref: ${data.transaction_id || data.tx_ref}`);
+        },
+        onclose: function() {
+          console.log('Payment modal closed');
+        }
+      });
+    });
+  }
+}
+
