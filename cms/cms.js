@@ -107,38 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (local) {
         allTransactions = JSON.parse(local);
       } else {
-        allTransactions = [
-          {
-            tx_ref: 'TRBB-1726402800000-842',
-            name: 'Sarah Jenkins',
-            email: 'sarah.jenkins@example.com',
-            amount: 50,
-            currency: 'USD',
-            program: 'New Hope To-Blossom (Educational Sponsorship)',
-            status: 'success',
-            createdAt: new Date().toISOString()
-          },
-          {
-            tx_ref: 'TRBB-1726405500000-319',
-            name: 'Chidubem Okafor',
-            email: 'c.okafor@example.ng',
-            amount: 30000,
-            currency: 'NGN',
-            program: 'Sprouting To-Thrive (Vocational Training)',
-            status: 'success',
-            createdAt: new Date().toISOString()
-          },
-          {
-            tx_ref: 'TRBB-1726408200000-502',
-            name: 'David Banda',
-            email: 'dbanda@example.mw',
-            amount: 25000,
-            currency: 'MWK',
-            program: 'General Mission Fund',
-            status: 'initiated',
-            createdAt: new Date().toISOString()
-          }
-        ];
+        allTransactions = [];
       }
     }
 
@@ -260,15 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       messages = data.messages || [];
     } catch (e) {
-      messages = [
-        {
-          subject: 'Thank You for Empowering Children Across Borders!',
-          recipientType: 'All Donors',
-          recipientCount: 42,
-          sentAt: new Date().toISOString(),
-          status: 'Delivered'
-        }
-      ];
+      messages = [];
     }
 
     const tbody = document.getElementById('message-history-tbody');

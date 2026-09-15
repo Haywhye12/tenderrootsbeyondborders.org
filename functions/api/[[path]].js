@@ -6,58 +6,8 @@
 // In-Memory & Cloudflare KV / D1 storage fallback state
 let memoryDB = {
   adminPasswordHash: 'trbbAdmin2026!',
-  transactions: [
-    {
-      id: 'TRBB-1726402800000-842',
-      tx_ref: 'TRBB-1726402800000-842',
-      flw_ref: 'FLW-MOCK-994182',
-      name: 'Sarah Jenkins',
-      email: 'sarah.jenkins@example.com',
-      amount: 50,
-      currency: 'USD',
-      program: 'New Hope To-Blossom (Educational Sponsorship)',
-      status: 'success',
-      createdAt: '2026-09-15T09:30:00Z',
-      updatedAt: '2026-09-15T09:31:12Z'
-    },
-    {
-      id: 'TRBB-1726405500000-319',
-      tx_ref: 'TRBB-1726405500000-319',
-      flw_ref: 'FLW-MOCK-104921',
-      name: 'Chidubem Okafor',
-      email: 'c.okafor@example.ng',
-      amount: 30000,
-      currency: 'NGN',
-      program: 'Sprouting To-Thrive (Vocational Training)',
-      status: 'success',
-      createdAt: '2026-09-15T10:15:00Z',
-      updatedAt: '2026-09-15T10:16:05Z'
-    },
-    {
-      id: 'TRBB-1726408200000-502',
-      tx_ref: 'TRBB-1726408200000-502',
-      flw_ref: null,
-      name: 'David Banda',
-      email: 'dbanda@example.mw',
-      amount: 25000,
-      currency: 'MWK',
-      program: 'General Mission Fund',
-      status: 'initiated',
-      createdAt: '2026-09-15T11:00:00Z',
-      updatedAt: '2026-09-15T11:00:00Z'
-    }
-  ],
-  messages: [
-    {
-      id: 'MSG-101',
-      subject: 'Thank You for Empowering Children Across Borders!',
-      recipientType: 'All Donors',
-      recipientCount: 42,
-      body: 'Dear Valued Supporter, Thank you for standing with Tender Roots Beyond Borders Inc. Your generosity is transforming lives in Malawi, Nigeria, and the USA...',
-      sentAt: '2026-09-14T14:20:00Z',
-      status: 'Delivered'
-    }
-  ],
+  transactions: [],
+  messages: [],
   content: {
     impactCounters: {
       childrenSponsored: 1250,
