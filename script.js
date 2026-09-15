@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFlutterwaveDonations();
   initCookieConsent();
   loadDynamicTeamMembers();
+  loadDynamicMediaItems();
 
   /* ── Motion layer ── */
   initMidPageParallax();
@@ -1471,5 +1472,66 @@ async function loadDynamicTeamMembers() {
     </div>
   `).join('');
 }
+
+/* ==========================================================================
+   25. DYNAMIC MEDIA GALLERY RENDERER
+   ========================================================================== */
+async function loadDynamicMediaItems() {
+  const grid = document.getElementById('dynamic-media-grid');
+  if (!grid) return;
+
+  let media = [];
+  try {
+    const res = await fetch(fixAssetPath('api/media'));
+    const data = await res.json();
+    media = data.media || [];
+  } catch (err) {
+    const local = localStorage.getItem('trbb_media_items');
+    if (local) media = JSON.parse(local);
+  }
+
+  if (!media || media.length === 0) return;
+
+  // Render any dynamic items that are newly added via CMS (ids starting with media-)
+  const dynamicItems = media.filter(m => m.id && m.id.startsWith('media-'));
+  if (dynamicItems.length === 0) return;
+
+  dynamicItems.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'card-glass outreach-card reveal';
+    card.setAttribute('data-media-cat', m.category || 'nigeria');
+    card.innerHTML = `
+      <div class="outreach-img-wrap">
+        <span class="program-tag" style="position: absolute; top: 1rem; right: 1rem; z-index: 5; margin: 0; background: rgba(7, 13, 11, 0.85);">CMS Upload</span>
+        <img src="${fixAssetPath(m.image)}" alt="${m.title}">
+        <div class="lightbox-trigger-overlay">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        </div>
+      </div>
+      <div style="padding: 1.25rem;">
+        <h4 style="font-size: 1.1rem; color: #FFF; margin-bottom: 0.5rem;">${m.title}</h4>
+        <p style="font-size: 0.85rem; color: var(--primary-emerald); margin-bottom: 0.75rem;">${m.location || ''}</p>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; line-height: 1.4;">${m.caption || ''}</p>
+        <button class="btn btn-glass" style="width: 100%; font-size: 0.85rem; padding: 0.5rem 1rem;">View Photo &rarr;</button>
+      </div>
+    `;
+
+    // Click trigger for lightbox
+    card.addEventListener('click', () => {
+      const lightbox = document.getElementById('lightbox-viewer');
+      const lightboxImg = document.getElementById('lightbox-img');
+      const lightboxCaption = document.getElementById('lightbox-caption');
+      if (lightbox && lightboxImg) {
+        lightboxImg.src = fixAssetPath(m.image);
+        if (lightboxCaption) lightboxCaption.textContent = `${m.title} (${m.location}) - ${m.caption}`;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
+
+    grid.prepend(card);
+  });
+}
+
 
 

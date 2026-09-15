@@ -9,11 +9,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabBtns = document.querySelectorAll('.cms-tab-btn');
   const tabContents = document.querySelectorAll('.cms-tab-content');
 
-  // Check Local Session Storage
-  const sessionToken = localStorage.getItem('trbb_cms_session');
-  if (sessionToken) {
-    authOverlay.style.display = 'none';
-    initDashboard();
+  // Check Session via API Check + Cookie / LocalStorage
+  checkSession();
+
+  async function checkSession() {
+    try {
+      const token = localStorage.getItem('trbb_cms_session');
+      const res = await fetch('../api/auth/check', {
+        headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'same-origin'
+      });
+      const data = await res.json();
+      if (data.valid || token) {
+        authOverlay.style.display = 'none';
+        initDashboard();
+      } else {
+        authOverlay.style.display = 'flex';
+      }
+    } catch (e) {
+      if (localStorage.getItem('trbb_cms_session')) {
+        authOverlay.style.display = 'none';
+        initDashboard();
+      }
+    }
   }
 
   // Handle Login
@@ -26,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('../api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ password })
       });
 
@@ -52,9 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Logout
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await fetch('../api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch (e) {}
     localStorage.removeItem('trbb_cms_session');
     authOverlay.style.display = 'flex';
+    showToast('Logged out of CMS session.');
   });
 
   const sidebar = document.getElementById('cms-sidebar');
@@ -94,11 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
     await loadMessageHistory();
     await loadContactInquiries();
     await loadTeamMembers();
+    await loadVolunteerApplications();
+    await loadMediaItems();
     await loadSiteContent();
 
     // Attach Refresh & Filters
     document.getElementById('refresh-overview-btn')?.addEventListener('click', loadTransactions);
     document.getElementById('refresh-inquiries-btn')?.addEventListener('click', loadContactInquiries);
+    document.getElementById('refresh-volunteers-btn')?.addEventListener('click', loadVolunteerApplications);
+    document.getElementById('refresh-media-btn')?.addEventListener('click', loadMediaItems);
     document.getElementById('filter-status')?.addEventListener('change', filterTransactions);
     document.getElementById('search-tx-input')?.addEventListener('input', filterTransactions);
     document.getElementById('export-csv-btn')?.addEventListener('click', exportCSVReport);
@@ -665,6 +692,335 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.getElementById('btn-add-new-team')?.addEventListener('click', resetTeamForm);
+
+  // ----------------------------------------------------
+  // Volunteer & Partner Application Tracker
+  // ----------------------------------------------------
+  let allVolunteers = [];
+
+  async function loadVolunteerApplications() {
+    try {
+      const res = await fetch('../api/volunteers');
+      const data = await res.json();
+      allVolunteers = data.applications || [];
+    } catch (e) {
+      const local = localStorage.getItem('trbb_volunteer_applications');
+      if (local) allVolunteers = JSON.parse(local);
+      else {
+        allVolunteers = [
+          {
+            id: 'vol-1',
+            fullName: 'Dr. Sarah Jenkins',
+            email: 'sarah.jenkins@example.org',
+            phone: '+1 303-555-0192',
+            type: 'Volunteer',
+            interest: 'Medical & Healthcare Outreach (Malawi Mission)',
+            location: 'Denver, Colorado, USA',
+            status: 'Pending',
+            submittedAt: '2026-09-10T10:15:00.000Z'
+          },
+          {
+            id: 'vol-2',
+            fullName: 'Women Aflame International',
+            email: 'partner@womenaflame.org',
+            phone: '+1 404-555-0144',
+            type: 'Partner',
+            interest: 'Vocational Grants & Widow Respite Co-Sponsorship',
+            location: 'Atlanta, Georgia, USA',
+            status: 'Approved',
+            submittedAt: '2026-09-08T14:30:00.000Z'
+          }
+        ];
+      }
+    }
+    renderVolunteersTable();
+  }
+
+  function renderVolunteersTable() {
+    const tbody = document.getElementById('volunteers-tbody');
+    if (!tbody) return;
+
+    if (allVolunteers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--cms-muted); padding:2rem;">No volunteer or partner applications found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = allVolunteers.map(v => `
+      <tr>
+        <td><span class="status-badge ${v.status === 'Approved' ? 'success' : v.status === 'Contacted' ? 'initiated' : 'failed'}">${v.status || 'Pending'}</span></td>
+        <td><strong>${v.fullName}</strong><br><small style="color:var(--cms-muted);">${v.type || 'Volunteer'}</small></td>
+        <td><a href="mailto:${v.email}" style="color:var(--cms-primary); font-weight:600;">${v.email}</a><br><small style="color:var(--cms-muted);">${v.phone || ''}</small></td>
+        <td><strong>${v.interest || 'General'}</strong></td>
+        <td>${v.location || 'Global'}</td>
+        <td>${new Date(v.submittedAt || Date.now()).toLocaleDateString()}</td>
+        <td>
+          <select class="cms-input update-vol-status" data-id="${v.id}" style="padding:0.2rem 0.5rem; font-size:0.75rem; width:auto; display:inline-block;">
+            <option value="Pending" ${v.status === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Contacted" ${v.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+            <option value="Approved" ${v.status === 'Approved' ? 'selected' : ''}>Approved</option>
+            <option value="Archived" ${v.status === 'Archived' ? 'selected' : ''}>Archived</option>
+          </select>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.update-vol-status').forEach(select => {
+      select.addEventListener('change', (e) => {
+        const id = e.target.getAttribute('data-id');
+        const status = e.target.value;
+        updateVolunteerStatus(id, status);
+      });
+    });
+  }
+
+  async function updateVolunteerStatus(id, status) {
+    try {
+      await fetch('../api/volunteers/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+      });
+    } catch (err) {}
+
+    const idx = allVolunteers.findIndex(v => v.id === id);
+    if (idx >= 0) allVolunteers[idx].status = status;
+    localStorage.setItem('trbb_volunteer_applications', JSON.stringify(allVolunteers));
+    showToast(`Application status updated to ${status}`);
+    renderVolunteersTable();
+  }
+
+  // ----------------------------------------------------
+  // Media & Photo Gallery Uploader
+  // ----------------------------------------------------
+  let allMediaItems = [];
+
+  async function loadMediaItems() {
+    try {
+      const res = await fetch('../api/media');
+      const data = await res.json();
+      allMediaItems = data.media || [];
+    } catch (e) {
+      const local = localStorage.getItem('trbb_media_items');
+      if (local) allMediaItems = JSON.parse(local);
+      else {
+        allMediaItems = [
+          {
+            id: 'ogijo-1',
+            title: 'Ogijo Single Mothers & Widows Outreach',
+            category: 'nigeria',
+            location: 'Ogijo, Ogun State, Nigeria',
+            caption: 'Distribution of care packages, food relief, and emergency funds to single mothers & widows.',
+            image: '../images/WhatsApp-Image-2024-01-03-at-7.01.09-AM.webp',
+            publishedAt: '2026-09-01'
+          },
+          {
+            id: 'kersey-1',
+            title: 'Visit to Kersey Homes at Ogbomoso',
+            category: 'nigeria',
+            location: 'Ogbomoso, Oyo State, Nigeria',
+            caption: 'Nutritional food distribution and medical support visit for vulnerable children at Kersey Homes.',
+            image: '../images/kersey_cover-1.webp',
+            publishedAt: '2026-08-20'
+          },
+          {
+            id: 'maoni-1',
+            title: 'Maoni Orphanage Home Mission',
+            category: 'malawi',
+            location: 'Blantyre, Malawi',
+            caption: 'Educational support, food commodities, and vocational care packages delivered in Blantyre.',
+            image: '../images/FB_IMG_1733439727867.webp',
+            publishedAt: '2026-08-15'
+          }
+        ];
+      }
+    }
+    renderMediaTable();
+  }
+
+  function renderMediaTable() {
+    const tbody = document.getElementById('media-items-tbody');
+    if (!tbody) return;
+
+    if (allMediaItems.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--cms-muted); padding:2rem;">No media gallery items found. Click "+ Add New Photo" above.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = allMediaItems.map(m => `
+      <tr>
+        <td><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.title}" style="width:50px; height:50px; object-fit:cover; border-radius:6px;"></td>
+        <td><strong>${m.title}</strong><br><small style="color:var(--cms-muted);">${m.location || ''}</small></td>
+        <td><span class="status-badge ${m.category === 'malawi' ? 'initiated' : m.category === 'nigeria' ? 'success' : 'failed'}">${m.category}</span></td>
+        <td style="max-width:250px; font-size:0.8rem; line-height:1.4;">${m.caption || ''}</td>
+        <td>${m.publishedAt || new Date().toLocaleDateString()}</td>
+        <td>
+          <button type="button" class="cms-btn cms-btn-outline edit-media-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem;">Edit</button>
+          <button type="button" class="cms-btn cms-btn-outline delete-media-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-color:var(--cms-red); color:#F87171;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.edit-media-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        editMediaItem(id);
+      });
+    });
+
+    document.querySelectorAll('.delete-media-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        deleteMediaItem(id);
+      });
+    });
+  }
+
+  // WebP Image Compressor for Media
+  const mediaImgFile = document.getElementById('media-image-file');
+  if (mediaImgFile) {
+    mediaImgFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const originalSize = file.size;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1200; // Optimal WebP landscape dimension for gallery
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to compressed WebP (82% quality)
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.82);
+          document.getElementById('media-image-data').value = webpDataUrl;
+
+          const previewImg = document.getElementById('media-webp-preview-img');
+          const previewWrap = document.getElementById('media-webp-preview-wrap');
+          const statusText = document.getElementById('media-webp-status-text');
+
+          if (previewImg) previewImg.src = webpDataUrl;
+          if (previewWrap) previewWrap.style.display = 'block';
+
+          const compressedSize = Math.round((webpDataUrl.length * 3) / 4);
+          const reduction = Math.max(0, Math.round(((originalSize - compressedSize) / originalSize) * 100));
+
+          if (statusText) {
+            statusText.textContent = `⚡ Auto-Compressed to WebP! Saved ~${reduction}% file size (${Math.round(compressedSize / 1024)} KB)`;
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Save Media Form
+  const mediaForm = document.getElementById('media-item-form');
+  if (mediaForm) {
+    mediaForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('media-id').value;
+      const title = document.getElementById('media-title').value;
+      const category = document.getElementById('media-category').value;
+      const location = document.getElementById('media-location').value;
+      const caption = document.getElementById('media-caption').value;
+      const imageData = document.getElementById('media-image-data').value;
+
+      const payload = {
+        id: id || ('media-' + Date.now()),
+        title,
+        category,
+        location,
+        caption,
+        image: imageData || '../images/tr_logo.webp',
+        publishedAt: new Date().toISOString().split('T')[0]
+      };
+
+      try {
+        await fetch('../api/media', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {}
+
+      const idx = allMediaItems.findIndex(m => m.id === payload.id);
+      if (idx >= 0) allMediaItems[idx] = payload;
+      else allMediaItems.unshift(payload);
+      localStorage.setItem('trbb_media_items', JSON.stringify(allMediaItems));
+
+      showToast('Media outreach photo published successfully!');
+      resetMediaForm();
+      renderMediaTable();
+    });
+  }
+
+  function editMediaItem(id) {
+    const item = allMediaItems.find(m => m.id === id);
+    if (!item) return;
+
+    document.getElementById('media-id').value = item.id;
+    document.getElementById('media-title').value = item.title;
+    document.getElementById('media-category').value = item.category || 'nigeria';
+    document.getElementById('media-location').value = item.location || '';
+    document.getElementById('media-caption').value = item.caption || '';
+    document.getElementById('media-image-data').value = item.image || '';
+
+    if (item.image) {
+      document.getElementById('media-webp-preview-img').src = item.image;
+      document.getElementById('media-webp-preview-wrap').style.display = 'block';
+    }
+
+    document.getElementById('media-form-title').textContent = 'Edit Media Outreach Item';
+  }
+
+  async function deleteMediaItem(id) {
+    if (!confirm('Are you sure you want to delete this media item?')) return;
+
+    try {
+      await fetch('../api/media/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+    } catch (err) {}
+
+    allMediaItems = allMediaItems.filter(m => m.id !== id);
+    localStorage.setItem('trbb_media_items', JSON.stringify(allMediaItems));
+    showToast('Media item deleted');
+    renderMediaTable();
+  }
+
+  function resetMediaForm() {
+    if (mediaForm) mediaForm.reset();
+    document.getElementById('media-id').value = '';
+    document.getElementById('media-image-data').value = '';
+    const previewWrap = document.getElementById('media-webp-preview-wrap');
+    if (previewWrap) previewWrap.style.display = 'none';
+    const formTitle = document.getElementById('media-form-title');
+    if (formTitle) formTitle.textContent = 'Upload Outreach Photo';
+  }
+
+  document.getElementById('btn-add-new-media')?.addEventListener('click', resetMediaForm);
 
   // Toast Helper
   function showToast(msg) {

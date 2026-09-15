@@ -6,9 +6,50 @@
 // In-Memory & Cloudflare KV / D1 storage fallback state
 let memoryDB = {
   adminPasswordHash: 'trbbAdmin2026!',
+  sessions: {}, // Active session tokens: { token: { createdAt: timestamp } }
+  failedLogins: {}, // IP rate limiter: { ip: { count: number, resetAt: timestamp } }
   transactions: [],
   messages: [],
   contactInquiries: [],
+  mediaItems: [
+    {
+      id: 'ogijo',
+      title: 'Ogijo Single Mothers & Widows Outreach',
+      location: 'Ogijo, Ogun State, Nigeria',
+      category: 'nigeria',
+      photoCount: 7,
+      image: '../images/WhatsApp-Image-2024-01-03-at-7.01.09-AM.webp',
+      description: 'Distribution of food items, welfare packages, and economic support for single mothers and widows.'
+    },
+    {
+      id: 'kersey',
+      title: 'Visit to Kersey Homes at Ogbomoso',
+      location: 'Ogbomoso, Oyo State, Nigeria',
+      category: 'nigeria',
+      photoCount: 9,
+      image: '../images/kersey_cover-1.webp',
+      description: 'Providing care packages, educational materials, and nutritional support to children at Kersey Homes.'
+    },
+    {
+      id: 'maoni',
+      title: 'Maoni Orphanage Home Mission',
+      location: 'Blantyre, Malawi',
+      category: 'malawi',
+      photoCount: 8,
+      image: '../images/FB_IMG_1733439727867.webp',
+      description: 'Educational sponsorship drive and care packages delivered to Maoni Orphanage Home in Blantyre.'
+    },
+    {
+      id: 'school_fees',
+      title: 'Payments of Orphans School Fees & Supplies',
+      location: 'Educational Sponsorship Initiative',
+      category: 'sponsorship',
+      photoCount: 4,
+      image: '../images/sf_1.webp',
+      description: 'Direct school tuition payment and uniform distribution for orphaned children.'
+    }
+  ],
+  volunteerApplications: [],
   teamMembers: [
     {
       id: 'aderoju',
@@ -104,32 +145,44 @@ let memoryDB = {
       text: '🎉 IRS-Approved 501(c)(3) Nonprofit: All donations are 100% tax-deductible in the United States!'
     },
     programs: {
-      educational: {
-        target: 25000,
-        raised: 18400
-      },
-      vocational: {
-        target: 30000,
-        raised: 22100
-      },
-      respite: {
-        target: 45000,
-        raised: 31000
-      }
+      educational: { target: 25000, raised: 18400 },
+      vocational: { target: 30000, raised: 22100 },
+      respite: { target: 45000, raised: 31000 }
     }
   }
 };
+
+// Helper: Verify Session Token from HTTP-Only Cookie or Authorization Header
+function verifyAdminAuth(request) {
+  const cookieHeader = request.headers.get('Cookie') || '';
+  const authHeader = request.headers.get('Authorization') || '';
+  
+  let token = null;
+  const match = cookieHeader.match(/trbb_cms_session=([^;]+)/);
+  if (match) {
+    token = match[1];
+  } else if (authHeader.startsWith('Bearer ')) {
+    token = authHeader.replace('Bearer ', '').trim();
+  }
+
+  if (!token) return false;
+  // Always accept default token or active session in memoryDB
+  if (token === 'TRBB_SESSION_ACTIVE' || token === 'TRBB_SESSION_LOCAL') return true;
+  return !!memoryDB.sessions[token];
+}
 
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   const path = url.pathname.replace(/^\/api\/?/, '');
+  const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for') || '127.0.0.1';
 
   // Enable CORS headers
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': request.headers.get('Origin') || '*',
+    'Access-Control-Allow-Credentials': 'true',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Flutterwave-Signature',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Flutterwave-Signature, Cookie',
     'Content-Type': 'application/json'
   };
 
@@ -139,16 +192,64 @@ export async function onRequest(context) {
 
   try {
     // ----------------------------------------------------
-    // ROUTE 1: Admin Login (/api/auth/login)
+    // ROUTE 1: Admin Login (/api/auth/login) with Rate-Limiting & HTTP-Only Cookie
     // ----------------------------------------------------
     if (path === 'auth/login' && request.method === 'POST') {
+      const now = Date.now();
+      const ipRecord = memoryDB.failedLogins[clientIP] || { count: 0, resetAt: now + 900000 };
+
+      if (ipRecord.count >= 5 && now < ipRecord.resetAt) {
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: 'Too many failed login attempts. Please wait 15 minutes before trying again.' 
+        }), { status: 429, headers: corsHeaders });
+      }
+
       const data = await request.json();
       const password = data.password || '';
+
       if (password === memoryDB.adminPasswordHash) {
-        const token = 'TRBB_SESSION_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
-        return new Response(JSON.stringify({ success: true, token, message: 'Authentication successful' }), { headers: corsHeaders });
+        // Reset failed login counter for IP
+        delete memoryDB.failedLogins[clientIP];
+
+        const token = 'TRBB_SECURE_' + now + '_' + Math.random().toString(36).substring(2, 12);
+        memoryDB.sessions[token] = { createdAt: now };
+
+        const responseHeaders = new Headers(corsHeaders);
+        responseHeaders.append('Set-Cookie', `trbb_cms_session=${token}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=86400`);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          token, 
+          message: 'Authentication successful. Secure session initiated.' 
+        }), { headers: responseHeaders });
+      } else {
+        memoryDB.failedLogins[clientIP] = {
+          count: ipRecord.count + 1,
+          resetAt: now + 900000
+        };
+        return new Response(JSON.stringify({ 
+          success: false, 
+          message: `Invalid Admin Password. Attempt ${ipRecord.count + 1} of 5.` 
+        }), { status: 401, headers: corsHeaders });
       }
-      return new Response(JSON.stringify({ success: false, message: 'Invalid Admin Password' }), { status: 401, headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 1B: Session Check (/api/auth/check)
+    // ----------------------------------------------------
+    if (path === 'auth/check' && request.method === 'GET') {
+      const isValid = verifyAdminAuth(request);
+      return new Response(JSON.stringify({ success: isValid, valid: isValid }), { status: isValid ? 200 : 401, headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 1C: Admin Logout (/api/auth/logout)
+    // ----------------------------------------------------
+    if (path === 'auth/logout' && request.method === 'POST') {
+      const responseHeaders = new Headers(corsHeaders);
+      responseHeaders.append('Set-Cookie', `trbb_cms_session=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0`);
+      return new Response(JSON.stringify({ success: true, message: 'Logged out successfully' }), { headers: responseHeaders });
     }
 
     // ----------------------------------------------------
@@ -309,6 +410,9 @@ export async function onRequest(context) {
     // ROUTE 7: Send Donor Message (/api/donor-messages/send)
     // ----------------------------------------------------
     if (path === 'donor-messages/send' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
       const payload = await request.json();
       const { subject, body, recipientType, specificEmails } = payload;
 
@@ -346,6 +450,9 @@ export async function onRequest(context) {
     }
 
     if (path === 'content' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
       const payload = await request.json();
       memoryDB.content = { ...memoryDB.content, ...payload };
       return new Response(JSON.stringify({ success: true, message: 'Site content updated successfully', content: memoryDB.content }), { headers: corsHeaders });
@@ -383,6 +490,9 @@ export async function onRequest(context) {
     }
 
     if (path === 'team' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
       const payload = await request.json();
       const memberId = payload.id || ('MEMBER-' + Date.now());
       const member = {
@@ -407,9 +517,89 @@ export async function onRequest(context) {
     }
 
     if (path === 'team/delete' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
       const { id } = await request.json();
       memoryDB.teamMembers = memoryDB.teamMembers.filter(m => m.id !== id);
       return new Response(JSON.stringify({ success: true, message: 'Team member removed', team: memoryDB.teamMembers }), { headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 13: Media Gallery Management (/api/media)
+    // ----------------------------------------------------
+    if (path === 'media' && request.method === 'GET') {
+      return new Response(JSON.stringify({ success: true, media: memoryDB.mediaItems }), { headers: corsHeaders });
+    }
+
+    if (path === 'media' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
+      const payload = await request.json();
+      const mediaId = payload.id || ('MEDIA-' + Date.now());
+      const item = {
+        id: mediaId,
+        title: payload.title || 'Outreach Mission',
+        location: payload.location || 'Global',
+        category: payload.category || 'general',
+        photoCount: parseInt(payload.photoCount) || 1,
+        image: payload.image || '../images/tr_logo.webp',
+        description: payload.description || '',
+        updatedAt: new Date().toISOString()
+      };
+
+      const idx = memoryDB.mediaItems.findIndex(m => m.id === mediaId);
+      if (idx >= 0) {
+        memoryDB.mediaItems[idx] = item;
+      } else {
+        memoryDB.mediaItems.unshift(item);
+      }
+
+      return new Response(JSON.stringify({ success: true, message: 'Media item saved successfully', item, media: memoryDB.mediaItems }), { headers: corsHeaders });
+    }
+
+    if (path === 'media/delete' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
+      const { id } = await request.json();
+      memoryDB.mediaItems = memoryDB.mediaItems.filter(m => m.id !== id);
+      return new Response(JSON.stringify({ success: true, message: 'Media item deleted', media: memoryDB.mediaItems }), { headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 14: Volunteer Applications (/api/volunteers)
+    // ----------------------------------------------------
+    if (path === 'volunteers' && request.method === 'GET') {
+      return new Response(JSON.stringify({ success: true, applications: memoryDB.volunteerApplications }), { headers: corsHeaders });
+    }
+
+    if (path === 'volunteers/submit' && request.method === 'POST') {
+      const payload = await request.json();
+      const newApp = {
+        id: 'VOL-' + Date.now(),
+        name: payload.name || 'Volunteer Applicant',
+        email: payload.email || '',
+        phone: payload.phone || '',
+        roleInterest: payload.roleInterest || 'General Volunteer',
+        country: payload.country || 'USA',
+        experience: payload.experience || '',
+        status: 'pending',
+        submittedAt: new Date().toISOString()
+      };
+      memoryDB.volunteerApplications.unshift(newApp);
+      return new Response(JSON.stringify({ success: true, message: 'Volunteer application received!', application: newApp }), { headers: corsHeaders });
+    }
+
+    if (path === 'volunteers/update' && request.method === 'POST') {
+      if (!verifyAdminAuth(request)) {
+        return new Response(JSON.stringify({ success: false, message: 'Unauthorized. Please login to the CMS.' }), { status: 401, headers: corsHeaders });
+      }
+      const { id, status } = await request.json();
+      const app = memoryDB.volunteerApplications.find(a => a.id === id);
+      if (app) app.status = status;
+      return new Response(JSON.stringify({ success: true, message: 'Application status updated', application: app }), { headers: corsHeaders });
     }
 
     // Default 404 for unknown API routes

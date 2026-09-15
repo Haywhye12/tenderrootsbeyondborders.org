@@ -70,7 +70,17 @@
           <span>Contact Messages</span>
         </button>
 
+        <button type="button" class="cms-tab-btn" data-tab="tab-volunteers" data-title="Volunteer & Partner Applications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+          <span>Volunteer Applications</span>
+        </button>
+
         <div class="cms-nav-group-label">Website Controls</div>
+        <button type="button" class="cms-tab-btn" data-tab="tab-media" data-title="Media & Outreach Photo Gallery">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+          <span>Media & Gallery</span>
+        </button>
+
         <button type="button" class="cms-tab-btn" data-tab="tab-team" data-title="Team & Leadership Manager">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           <span>Team & Leadership</span>
@@ -330,6 +340,126 @@
                   <!-- Dynamically populated -->
                 </tbody>
               </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: VOLUNTEER & PARTNER APPLICATIONS -->
+        <section id="tab-volunteers" class="cms-tab-content" style="display: none;">
+          <div class="cms-card-panel">
+            <div class="cms-panel-head">
+              <h3 class="cms-panel-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
+                Volunteer & Partner Applications
+              </h3>
+              <button type="button" id="refresh-volunteers-btn" class="cms-btn cms-btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Refresh List</button>
+            </div>
+
+            <div class="cms-table-responsive">
+              <table class="cms-table">
+                <thead>
+                  <tr>
+                    <th>Status</th>
+                    <th>Applicant Name</th>
+                    <th>Email & Phone</th>
+                    <th>Role / Interest</th>
+                    <th>Country</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="volunteers-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB: MEDIA & GALLERY MANAGER -->
+        <section id="tab-media" class="cms-tab-content" style="display: none;">
+          <div class="cms-grid-2col">
+            <!-- Left: Current Media Outreach Items -->
+            <div class="cms-card-panel">
+              <div class="cms-panel-head">
+                <h3 class="cms-panel-title">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                  Media & Outreach Missions
+                </h3>
+                <button type="button" id="btn-add-new-media" class="cms-btn cms-btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">+ Add New Outreach</button>
+              </div>
+
+              <div class="cms-table-responsive">
+                <table class="cms-table">
+                  <thead>
+                    <tr>
+                      <th>Cover</th>
+                      <th>Mission Title</th>
+                      <th>Category</th>
+                      <th>Photos</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="media-items-tbody">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right: Add / Edit Media Form & WebP Compressor -->
+            <div class="cms-card-panel">
+              <div class="cms-panel-head">
+                <h3 class="cms-panel-title" id="media-form-title">Add Outreach Mission</h3>
+              </div>
+
+              <form id="media-item-form">
+                <input type="hidden" id="media-id" value="">
+
+                <div class="cms-form-group">
+                  <label for="media-title">Mission Title *</label>
+                  <input type="text" id="media-title" class="cms-input" placeholder="e.g. Blantyre Orphanage Food Drive" required>
+                </div>
+
+                <div class="cms-form-group">
+                  <label for="media-location">Location *</label>
+                  <input type="text" id="media-location" class="cms-input" placeholder="e.g. Blantyre, Malawi" required>
+                </div>
+
+                <div class="cms-form-group">
+                  <label for="media-category">Category *</label>
+                  <select id="media-category" class="cms-select" style="width: 100%;">
+                    <option value="nigeria">Nigeria Outreach</option>
+                    <option value="malawi">Malawi Outreach</option>
+                    <option value="sponsorship">Educational Sponsorship</option>
+                    <option value="usa">USA Events &amp; Press</option>
+                  </select>
+                </div>
+
+                <div class="cms-form-group">
+                  <label for="media-photo-count">Photo Count Badge</label>
+                  <input type="number" id="media-photo-count" class="cms-input" value="6" min="1">
+                </div>
+
+                <div class="cms-form-group">
+                  <label for="media-description">Description / Impact Note</label>
+                  <textarea id="media-description" class="cms-input" placeholder="Enter short mission summary..."></textarea>
+                </div>
+
+                <!-- WebP Cover Photo Upload & Compressor -->
+                <div class="cms-form-group">
+                  <label>Cover Photo (Auto-Compressed to WebP)</label>
+                  <input type="file" id="media-image-file" class="cms-input" accept="image/*">
+                  <input type="hidden" id="media-image-data" value="">
+                  
+                  <div id="media-webp-preview-wrap" style="display: none; margin-top: 0.8rem; text-align: center; background: rgba(0,0,0,0.3); padding: 0.8rem; border-radius: 12px; border: 1px dashed var(--cms-primary);">
+                    <img id="media-webp-preview-img" src="" alt="WebP Preview" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid var(--cms-primary);">
+                    <p id="media-webp-status-text" style="font-size: 0.75rem; color: #34D399; margin-top: 0.4rem; font-weight: 600;">⚡ Compressed to WebP format</p>
+                  </div>
+                </div>
+
+                <button type="submit" class="cms-btn" style="width: 100%; margin-top: 0.5rem;">Save Outreach Mission</button>
+              </form>
             </div>
           </div>
         </section>
