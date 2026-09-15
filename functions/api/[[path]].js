@@ -8,6 +8,90 @@ let memoryDB = {
   adminPasswordHash: 'trbbAdmin2026!',
   transactions: [],
   messages: [],
+  contactInquiries: [],
+  teamMembers: [
+    {
+      id: 'aderoju',
+      name: 'Pastor Aderoju Ajibade',
+      role: 'President / CEO',
+      category: 'board',
+      location: 'Colorado, USA',
+      bio: 'Visionary leader, ordained Pastor, Registered Nurse, and CEO of Continental Home Health Inc. (Colorado, USA).',
+      image: '../images/aderoju_ajibade.webp'
+    },
+    {
+      id: 'jemima',
+      name: 'Praise Jemima Ajibade',
+      role: 'Executive Secretary',
+      category: 'board',
+      location: 'Houston, USA',
+      bio: 'Master’s degree in public policy (University of Houston), advocating for equitable healthcare & social policies.',
+      image: '../images/jemima_ajibade.webp'
+    },
+    {
+      id: 'eledan',
+      name: 'Rev. Grace Eledan',
+      role: 'Director',
+      category: 'board',
+      location: 'Atlanta, USA',
+      bio: 'President & Founder of Women Aflame International, Co-Pastor at Leaders Church International (Atlanta, USA).',
+      image: '../images/grace_eledan.webp'
+    },
+    {
+      id: 'stella',
+      name: 'Pastor Stella Fowowe',
+      role: 'Co-ordinator, Malawi',
+      category: 'coordinators',
+      location: 'Blantyre, Malawi',
+      bio: 'Fellow in counselling, consultant, lecturer, and motivational speaker with deep passion for youth empowerment.',
+      image: '../images/Stella_fowowe.webp'
+    },
+    {
+      id: 'grace_jerry',
+      name: 'Grace Jerry Udabor',
+      role: 'Co-ordinator, Edo State, Nigeria',
+      category: 'coordinators',
+      location: 'Benin City, Nigeria',
+      bio: 'MBA holder working with the Nigerian Tourism Development Authority, based in Benin City.',
+      image: '../images/Grace_jerry.webp'
+    },
+    {
+      id: 'favour',
+      name: 'Mrs. Favour Shoyombo',
+      role: 'Co-ordinator, Abuja - Nigeria',
+      category: 'coordinators',
+      location: 'Abuja, Nigeria',
+      bio: 'Dedicated administrator exemplifying care, compassion, and community leadership in Abuja.',
+      image: '../images/favour_shoyombo.webp'
+    },
+    {
+      id: 'mobolaji',
+      name: 'Mobolaji Olajumoke Alade',
+      role: 'Co-ordinator, Oyo State, Nigeria',
+      category: 'coordinators',
+      location: 'Ibadan, Nigeria',
+      bio: 'B.A. degree holder and businesswoman living in Ibadan, passionate about community welfare.',
+      image: '../images/Mobolaji_olajumoke.webp'
+    },
+    {
+      id: 'folake',
+      name: 'Olorunda Folake Adefolahan',
+      role: 'Co-ordinator, Ogijo - Ogun State',
+      category: 'coordinators',
+      location: 'Ogijo, Ogun State, Nigeria',
+      bio: 'Dedicated advocate channelizing passion for less-privileged mothers and children in Ogijo.',
+      image: '../images/Olorunda_folake.webp'
+    },
+    {
+      id: 'temitayo',
+      name: 'Temitayo Ifetogun',
+      role: 'Co-ordinator, Ogun State, Nigeria',
+      category: 'coordinators',
+      location: 'Ogun State, Nigeria',
+      bio: 'CEO of Cakes’n GoodThings and convener of Gathering Of Deborahs, mentor to over 200 entrepreneurs.',
+      image: '../images/temitayo_ifetogun-1.webp'
+    }
+  ],
   content: {
     impactCounters: {
       childrenSponsored: 1250,
@@ -265,6 +349,67 @@ export async function onRequest(context) {
       const payload = await request.json();
       memoryDB.content = { ...memoryDB.content, ...payload };
       return new Response(JSON.stringify({ success: true, message: 'Site content updated successfully', content: memoryDB.content }), { headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 10: Submit Contact Inquiry (/api/contact/submit)
+    // ----------------------------------------------------
+    if (path === 'contact/submit' && request.method === 'POST') {
+      const payload = await request.json();
+      const newInquiry = {
+        id: 'INQ-' + Date.now(),
+        name: `${payload.firstName || ''} ${payload.lastName || ''}`.trim() || payload.name || 'Website Visitor',
+        email: payload.email || '',
+        message: payload.message || '',
+        status: 'unread',
+        submittedAt: new Date().toISOString()
+      };
+      memoryDB.contactInquiries.unshift(newInquiry);
+      return new Response(JSON.stringify({ success: true, message: 'Message submitted successfully!', inquiry: newInquiry }), { headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 11: Get Contact Inquiries (/api/contact/messages)
+    // ----------------------------------------------------
+    if (path === 'contact/messages' && request.method === 'GET') {
+      return new Response(JSON.stringify({ success: true, inquiries: memoryDB.contactInquiries }), { headers: corsHeaders });
+    }
+
+    // ----------------------------------------------------
+    // ROUTE 12: Team Management (/api/team)
+    // ----------------------------------------------------
+    if (path === 'team' && request.method === 'GET') {
+      return new Response(JSON.stringify({ success: true, team: memoryDB.teamMembers }), { headers: corsHeaders });
+    }
+
+    if (path === 'team' && request.method === 'POST') {
+      const payload = await request.json();
+      const memberId = payload.id || ('MEMBER-' + Date.now());
+      const member = {
+        id: memberId,
+        name: payload.name || 'Team Member',
+        role: payload.role || 'Officer',
+        category: payload.category || 'board',
+        location: payload.location || '',
+        bio: payload.bio || '',
+        image: payload.image || '../images/tr_logo.webp',
+        updatedAt: new Date().toISOString()
+      };
+
+      const idx = memoryDB.teamMembers.findIndex(m => m.id === memberId);
+      if (idx >= 0) {
+        memoryDB.teamMembers[idx] = member;
+      } else {
+        memoryDB.teamMembers.unshift(member);
+      }
+
+      return new Response(JSON.stringify({ success: true, message: 'Team member saved successfully', member, team: memoryDB.teamMembers }), { headers: corsHeaders });
+    }
+
+    if (path === 'team/delete' && request.method === 'POST') {
+      const { id } = await request.json();
+      memoryDB.teamMembers = memoryDB.teamMembers.filter(m => m.id !== id);
+      return new Response(JSON.stringify({ success: true, message: 'Team member removed', team: memoryDB.teamMembers }), { headers: corsHeaders });
     }
 
     // Default 404 for unknown API routes

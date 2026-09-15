@@ -57,6 +57,16 @@ document.addEventListener('DOMContentLoaded', () => {
     authOverlay.style.display = 'flex';
   });
 
+  const sidebar = document.getElementById('cms-sidebar');
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  const currentTabTitle = document.getElementById('current-tab-title');
+
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', () => {
+      if (sidebar) sidebar.classList.toggle('active');
+    });
+  }
+
   // Tab Navigation
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -65,8 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       btn.classList.add('active');
       const targetTab = btn.getAttribute('data-tab');
+      const title = btn.getAttribute('data-title') || 'Dashboard Overview';
+      if (currentTabTitle) currentTabTitle.textContent = title;
+
       const targetContent = document.getElementById(targetTab);
       if (targetContent) targetContent.style.display = 'block';
+
+      // Close mobile sidebar after selecting tab
+      if (sidebar && window.innerWidth <= 992) {
+        sidebar.classList.remove('active');
+      }
     });
   });
 
@@ -74,10 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
   async function initDashboard() {
     await loadTransactions();
     await loadMessageHistory();
+    await loadContactInquiries();
+    await loadTeamMembers();
     await loadSiteContent();
 
     // Attach Refresh & Filters
     document.getElementById('refresh-overview-btn')?.addEventListener('click', loadTransactions);
+    document.getElementById('refresh-inquiries-btn')?.addEventListener('click', loadContactInquiries);
     document.getElementById('filter-status')?.addEventListener('change', filterTransactions);
     document.getElementById('search-tx-input')?.addEventListener('input', filterTransactions);
     document.getElementById('export-csv-btn')?.addEventListener('click', exportCSVReport);
@@ -325,6 +346,325 @@ document.addEventListener('DOMContentLoaded', () => {
 
     showToast('Website content & impact metrics updated!');
   }
+
+  // Contact Inquiries Loader
+  async function loadContactInquiries() {
+    let inquiries = [];
+    try {
+      const res = await fetch('../api/contact/messages');
+      const data = await res.json();
+      inquiries = data.inquiries || [];
+    } catch (e) {
+      const local = localStorage.getItem('trbb_contact_inquiries_log');
+      if (local) inquiries = JSON.parse(local);
+    }
+
+    const tbody = document.getElementById('inquiries-tbody');
+    if (!tbody) return;
+
+    if (inquiries.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--cms-muted); padding:2rem;">No contact messages received yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = inquiries.map(item => `
+      <tr>
+        <td><span class="status-badge success">Received</span></td>
+        <td><strong>${item.name}</strong></td>
+        <td><a href="mailto:${item.email}" style="color:var(--cms-primary); font-weight:600;">${item.email}</a></td>
+        <td style="max-width:380px; line-height:1.5;">${item.message}</td>
+        <td>${new Date(item.submittedAt).toLocaleString()}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ----------------------------------------------------
+  // Team & Leadership Manager + WebP Image Compressor
+  // ----------------------------------------------------
+  let allTeamMembers = [];
+
+  async function loadTeamMembers() {
+    try {
+      const res = await fetch('../api/team');
+      const data = await res.json();
+      allTeamMembers = data.team || [];
+    } catch (e) {
+      const local = localStorage.getItem('trbb_team_members');
+      if (local) allTeamMembers = JSON.parse(local);
+      else {
+        allTeamMembers = [
+          {
+            id: 'aderoju',
+            name: 'Pastor Aderoju Ajibade',
+            role: 'President / CEO',
+            category: 'board',
+            location: 'Colorado, USA',
+            bio: 'Visionary leader, ordained Pastor, Registered Nurse, and CEO of Continental Home Health Inc. (Colorado, USA).',
+            image: '../images/aderoju_ajibade.webp'
+          },
+          {
+            id: 'jemima',
+            name: 'Praise Jemima Ajibade',
+            role: 'Executive Secretary',
+            category: 'board',
+            location: 'Houston, USA',
+            bio: 'Master’s degree in public policy (University of Houston), advocating for equitable healthcare & social policies.',
+            image: '../images/jemima_ajibade.webp'
+          },
+          {
+            id: 'eledan',
+            name: 'Rev. Grace Eledan',
+            role: 'Director',
+            category: 'board',
+            location: 'Atlanta, USA',
+            bio: 'President & Founder of Women Aflame International, Co-Pastor at Leaders Church International (Atlanta, USA).',
+            image: '../images/grace_eledan.webp'
+          },
+          {
+            id: 'stella',
+            name: 'Pastor Stella Fowowe',
+            role: 'Co-ordinator, Malawi',
+            category: 'coordinators',
+            location: 'Blantyre, Malawi',
+            bio: 'Fellow in counselling, consultant, lecturer, and motivational speaker with deep passion for youth empowerment.',
+            image: '../images/Stella_fowowe.webp'
+          },
+          {
+            id: 'grace_jerry',
+            name: 'Grace Jerry Udabor',
+            role: 'Co-ordinator, Edo State, Nigeria',
+            category: 'coordinators',
+            location: 'Benin City, Nigeria',
+            bio: 'MBA holder working with the Nigerian Tourism Development Authority, based in Benin City.',
+            image: '../images/Grace_jerry.webp'
+          },
+          {
+            id: 'favour',
+            name: 'Mrs. Favour Shoyombo',
+            role: 'Co-ordinator, Abuja - Nigeria',
+            category: 'coordinators',
+            location: 'Abuja, Nigeria',
+            bio: 'Dedicated administrator exemplifying care, compassion, and community leadership in Abuja.',
+            image: '../images/favour_shoyombo.webp'
+          },
+          {
+            id: 'mobolaji',
+            name: 'Mobolaji Olajumoke Alade',
+            role: 'Co-ordinator, Oyo State, Nigeria',
+            category: 'coordinators',
+            location: 'Ibadan, Nigeria',
+            bio: 'B.A. degree holder and businesswoman living in Ibadan, passionate about community welfare.',
+            image: '../images/Mobolaji_olajumoke.webp'
+          },
+          {
+            id: 'folake',
+            name: 'Olorunda Folake Adefolahan',
+            role: 'Co-ordinator, Ogijo - Ogun State',
+            category: 'coordinators',
+            location: 'Ogijo, Ogun State, Nigeria',
+            bio: 'Dedicated advocate channelizing passion for less-privileged mothers and children in Ogijo.',
+            image: '../images/Olorunda_folake.webp'
+          },
+          {
+            id: 'temitayo',
+            name: 'Temitayo Ifetogun',
+            role: 'Co-ordinator, Ogun State, Nigeria',
+            category: 'coordinators',
+            location: 'Ogun State, Nigeria',
+            bio: 'CEO of Cakes’n GoodThings and convener of Gathering Of Deborahs, mentor to over 200 entrepreneurs.',
+            image: '../images/temitayo_ifetogun-1.webp'
+          }
+        ];
+      }
+    }
+    renderTeamTable();
+  }
+
+  function renderTeamTable() {
+    const tbody = document.getElementById('team-members-tbody');
+    if (!tbody) return;
+
+    if (allTeamMembers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--cms-muted); padding:2rem;">No team members found. Click "+ Add New Member" to add one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = allTeamMembers.map(m => `
+      <tr>
+        <td><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.name}" style="width:40px; height:40px; object-fit:cover; border-radius:50%;"></td>
+        <td><strong>${m.name}</strong><br><small style="color:var(--cms-muted);">${m.role}</small></td>
+        <td><span class="status-badge ${m.category === 'board' ? 'success' : 'initiated'}">${m.category}</span></td>
+        <td>${m.location || 'Global'}</td>
+        <td>
+          <button type="button" class="cms-btn cms-btn-outline edit-team-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem;">Edit</button>
+          <button type="button" class="cms-btn cms-btn-outline delete-team-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-color:var(--cms-red); color:#F87171;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    document.querySelectorAll('.edit-team-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        editTeamMember(id);
+      });
+    });
+
+    document.querySelectorAll('.delete-team-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        deleteTeamMember(id);
+      });
+    });
+  }
+
+  // Automatic WebP Image Compressor (Canvas)
+  const teamImgFile = document.getElementById('team-image-file');
+  if (teamImgFile) {
+    teamImgFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const originalSize = file.size;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 800; // Optimal WebP portrait dimension
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to compressed WebP (82% quality)
+          const webpDataUrl = canvas.toDataURL('image/webp', 0.82);
+          document.getElementById('team-image-data').value = webpDataUrl;
+
+          const previewImg = document.getElementById('webp-preview-img');
+          const previewWrap = document.getElementById('webp-preview-wrap');
+          const statusText = document.getElementById('webp-status-text');
+
+          if (previewImg) previewImg.src = webpDataUrl;
+          if (previewWrap) previewWrap.style.display = 'block';
+
+          const compressedSize = Math.round((webpDataUrl.length * 3) / 4);
+          const reduction = Math.max(0, Math.round(((originalSize - compressedSize) / originalSize) * 100));
+
+          if (statusText) {
+            statusText.textContent = `⚡ Auto-Compressed to WebP! Saved ~${reduction}% file size (${Math.round(compressedSize / 1024)} KB)`;
+          }
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Save Team Member
+  const teamForm = document.getElementById('team-member-form');
+  if (teamForm) {
+    teamForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('team-id').value;
+      const name = document.getElementById('team-name').value;
+      const role = document.getElementById('team-role').value;
+      const category = document.getElementById('team-category').value;
+      const location = document.getElementById('team-location').value;
+      const bio = document.getElementById('team-bio').value;
+      const imageData = document.getElementById('team-image-data').value;
+
+      const payload = {
+        id: id || ('member-' + Date.now()),
+        name,
+        role,
+        category,
+        location,
+        bio,
+        image: imageData || '../images/tr_logo.webp'
+      };
+
+      try {
+        await fetch('../api/team', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {}
+
+      const idx = allTeamMembers.findIndex(m => m.id === payload.id);
+      if (idx >= 0) allTeamMembers[idx] = payload;
+      else allTeamMembers.unshift(payload);
+      localStorage.setItem('trbb_team_members', JSON.stringify(allTeamMembers));
+
+      showToast('Team member saved successfully!');
+      resetTeamForm();
+      renderTeamTable();
+    });
+  }
+
+  function editTeamMember(id) {
+    const member = allTeamMembers.find(m => m.id === id);
+    if (!member) return;
+
+    document.getElementById('team-id').value = member.id;
+    document.getElementById('team-name').value = member.name;
+    document.getElementById('team-role').value = member.role;
+    document.getElementById('team-category').value = member.category || 'board';
+    document.getElementById('team-location').value = member.location || '';
+    document.getElementById('team-bio').value = member.bio || '';
+    document.getElementById('team-image-data').value = member.image || '';
+
+    if (member.image) {
+      document.getElementById('webp-preview-img').src = member.image;
+      document.getElementById('webp-preview-wrap').style.display = 'block';
+    }
+
+    document.getElementById('team-form-title').textContent = 'Edit Team Member';
+  }
+
+  async function deleteTeamMember(id) {
+    if (!confirm('Are you sure you want to delete this team member?')) return;
+
+    try {
+      await fetch('../api/team/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id })
+      });
+    } catch (err) {}
+
+    allTeamMembers = allTeamMembers.filter(m => m.id !== id);
+    localStorage.setItem('trbb_team_members', JSON.stringify(allTeamMembers));
+    showToast('Team member deleted');
+    renderTeamTable();
+  }
+
+  function resetTeamForm() {
+    if (teamForm) teamForm.reset();
+    document.getElementById('team-id').value = '';
+    document.getElementById('team-image-data').value = '';
+    const previewWrap = document.getElementById('webp-preview-wrap');
+    if (previewWrap) previewWrap.style.display = 'none';
+    const formTitle = document.getElementById('team-form-title');
+    if (formTitle) formTitle.textContent = 'Add Team Member';
+  }
+
+  document.getElementById('btn-add-new-team')?.addEventListener('click', resetTeamForm);
 
   // Toast Helper
   function showToast(msg) {

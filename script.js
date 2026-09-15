@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initKeyboardNav();
   initFlutterwaveDonations();
   initCookieConsent();
+  loadDynamicTeamMembers();
 
   /* ── Motion layer ── */
   initMidPageParallax();
@@ -1380,6 +1381,95 @@ function initCookieConsent() {
       showBanner();
     }
   });
+}
+
+/* ==========================================================================
+   23. CONTACT FORM SUBMISSION CONTROLLER
+   ========================================================================== */
+function initContactForm() {
+  const contactForm = document.getElementById('trbb-contact-form');
+  if (!contactForm) return;
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const firstName = document.getElementById('first-name') ? document.getElementById('first-name').value.trim() : '';
+    const lastName = document.getElementById('last-name') ? document.getElementById('last-name').value.trim() : '';
+    const email = document.getElementById('email') ? document.getElementById('email').value.trim() : '';
+    const message = document.getElementById('message') ? document.getElementById('message').value.trim() : '';
+
+    if (!email || !message) {
+      alert('Please enter your email and message.');
+      return;
+    }
+
+    const submitBtn = document.getElementById('btn-submit-form');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Sending Message...</span>`;
+    }
+
+    const payload = {
+      firstName: firstName,
+      lastName: lastName,
+      name: `${firstName} ${lastName}`.trim() || 'Website Visitor',
+      email: email,
+      message: message,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      await fetch(fixAssetPath('api/contact/submit'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {}
+
+    // Local storage backup for offline dev
+    const localLog = JSON.parse(localStorage.getItem('trbb_contact_inquiries_log') || '[]');
+    localLog.unshift(payload);
+    localStorage.setItem('trbb_contact_inquiries_log', JSON.stringify(localLog));
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<span>Submit Message</span> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>`;
+    }
+
+    contactForm.reset();
+    alert(`Thank you, ${firstName || 'Friend'}! Your message has been sent to our team and recorded in our system.`);
+  });
+}
+
+/* ==========================================================================
+   24. DYNAMIC TEAM MEMBERS RENDERER
+   ========================================================================== */
+async function loadDynamicTeamMembers() {
+  const grid = document.getElementById('dynamic-team-grid');
+  if (!grid) return;
+
+  let team = [];
+  try {
+    const res = await fetch(fixAssetPath('api/team'));
+    const data = await res.json();
+    team = data.team || [];
+  } catch (err) {
+    const local = localStorage.getItem('trbb_team_members');
+    if (local) team = JSON.parse(local);
+  }
+
+  if (!team || team.length === 0) return;
+
+  grid.innerHTML = team.map(m => `
+    <div class="card-glass team-card reveal" data-category="${m.category || 'board'}">
+      <div class="team-photo-wrap" style="width:120px; height:120px; margin:0 auto 1rem auto; overflow:hidden; border-radius:50%; border:3px solid var(--primary-emerald);">
+        <img src="${m.image || '../images/tr_logo.webp'}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;">
+      </div>
+      <h4 class="team-name" style="font-size: 1.15rem; color: #FFF; margin-top: 0.5rem;">${m.name}</h4>
+      <span class="team-role" style="font-size: 0.85rem; color: var(--primary-emerald); font-weight:700;">${m.role} ${m.location ? '• ' + m.location : ''}</span>
+      <p class="team-bio-snippet" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height:1.5;">${m.bio || ''}</p>
+    </div>
+  `).join('');
 }
 
 
