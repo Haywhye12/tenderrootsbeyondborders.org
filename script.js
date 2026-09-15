@@ -1098,73 +1098,108 @@ function initCursorGlow() {
 }
 
 /* ==========================================================================
-   21. FLUTTERWAVE DONATION GATEWAY CONTROLLER
+   21. FLUTTERWAVE DONATION GATEWAY & DONATE PAGE CONTROLLER
    ========================================================================== */
 function initFlutterwaveDonations() {
-  const modal = document.getElementById('donation-modal');
-  if (!modal) return;
+  const isDonatePage = document.body.classList.contains('page-donate') || !!document.getElementById('flutterwave-submit-btn');
+  const isSubfolder = window.location.pathname.includes('/about/') || 
+                      window.location.pathname.includes('/programs/') || 
+                      window.location.pathname.includes('/our-team/') || 
+                      window.location.pathname.includes('/media/') || 
+                      window.location.pathname.includes('/contact/') || 
+                      window.location.pathname.includes('/privacy/') || 
+                      window.location.pathname.includes('/donate/');
+  const targetDonateUrl = isSubfolder ? (window.location.pathname.includes('/donate/') ? '#' : '../donate/') : 'donate/';
 
-  const closeBtn = modal.querySelector('.donation-modal-close');
-  const amountChips = modal.querySelectorAll('.amount-chip');
+  // Dynamically inject floating mobile donate button if not already present (and not on /donate/ page)
+  if (!isDonatePage && !document.getElementById('floating-mobile-donate-btn')) {
+    const floatBtn = document.createElement('a');
+    floatBtn.id = 'floating-mobile-donate-btn';
+    floatBtn.href = targetDonateUrl;
+    floatBtn.className = 'floating-mobile-donate';
+    floatBtn.setAttribute('aria-label', 'Donate Now');
+    floatBtn.innerHTML = `
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <span>Donate</span>
+    `;
+    document.body.appendChild(floatBtn);
+  }
+
+  // Redirect legacy modal trigger links to the dedicated /donate/ page
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.open-donate-modal, a[href="#donate"]');
+    if (target) {
+      if (!isDonatePage) {
+        e.preventDefault();
+        window.location.href = targetDonateUrl;
+      }
+    }
+  });
+
+  // 1-Click Copy helper for Bank Transfer Details on Donate page
+  const copyBtns = document.querySelectorAll('.bank-copy-btn');
+  copyBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const textToCopy = btn.getAttribute('data-copy');
+      if (textToCopy) {
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = `✓ Copied`;
+          btn.style.background = 'var(--primary-emerald)';
+          btn.style.color = '#FFF';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 2000);
+        }).catch(() => {});
+      }
+    });
+  });
+
+  if (!isDonatePage) return;
+
+  const amountChips = document.querySelectorAll('.amount-chip');
   const customAmountWrap = document.getElementById('custom-amount-wrap');
   const customAmountInput = document.getElementById('donation-custom-amount');
-  const currencyPills = modal.querySelectorAll('.currency-pill');
+  const currencyPills = document.querySelectorAll('.currency-pill');
   const submitBtn = document.getElementById('flutterwave-submit-btn');
   const programSelect = document.getElementById('donation-program-select');
   const donorNameInput = document.getElementById('donation-donor-name');
   const donorEmailInput = document.getElementById('donation-donor-email');
+  const amountLabel = document.getElementById('donation-amount-label');
+  const frequencyBtns = document.querySelectorAll('.frequency-btn');
 
   let selectedCurrency = 'USD';
-  let selectedAmount = '50';
+  let selectedAmount = customAmountInput ? customAmountInput.value : '';
+  let selectedFrequency = 'once';
   
   const currencyPresets = {
-    USD: { symbol: '$', presets: [10, 25, 50, 100, 250] },
-    GBP: { symbol: '£', presets: [10, 25, 50, 100, 250] },
-    EUR: { symbol: '€', presets: [10, 25, 50, 100, 250] },
-    NGN: { symbol: '₦', presets: [5000, 15000, 30000, 75000, 150000] },
-    MWK: { symbol: 'MK ', presets: [10000, 25000, 50000, 100000, 250000] }
+    USD: { symbol: '$' },
+    GBP: { symbol: '£' },
+    EUR: { symbol: '€' },
+    NGN: { symbol: '₦' },
+    MWK: { symbol: 'MK ' }
   };
 
-  // Open Modal trigger for any .open-donate-modal or [href="#donate"] button
-  document.querySelectorAll('.open-donate-modal, a[href="#donate"]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      modal.classList.add('active');
-      document.body.style.overflow = 'hidden';
+  // Frequency Selection ("Give Once" vs "Give Monthly")
+  frequencyBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      frequencyBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedFrequency = btn.getAttribute('data-frequency') || 'once';
+      updateSubmitBtnText();
     });
   });
 
-  // Close modal
-  const closeModal = () => {
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
-  };
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  // Function to update preset amount chips when currency changes
-  function updateAmountChips(curr) {
+  // Function to update currency label when currency changes
+  function updateCurrencyDisplay(curr) {
     const config = currencyPresets[curr] || currencyPresets.USD;
-    const nonCustomChips = Array.from(amountChips).filter(c => c.getAttribute('data-amount') !== 'custom');
-
-    nonCustomChips.forEach((chip, index) => {
-      if (config.presets[index] !== undefined) {
-        const val = config.presets[index];
-        chip.setAttribute('data-amount', val);
-        chip.textContent = `${config.symbol}${val.toLocaleString()}`;
-      }
-    });
-
-    const activeChip = Array.from(amountChips).find(c => c.classList.contains('active'));
-    if (activeChip) {
-      const amt = activeChip.getAttribute('data-amount');
-      if (amt === 'custom') {
-        selectedAmount = customAmountInput ? customAmountInput.value : '';
-      } else {
-        selectedAmount = amt;
-      }
+    if (amountLabel) {
+      amountLabel.textContent = `Enter Donation Amount (${config.symbol.trim()}) *`;
+    }
+    if (customAmountInput) {
+      selectedAmount = customAmountInput.value;
     }
     updateSubmitBtnText();
   }
@@ -1175,25 +1210,7 @@ function initFlutterwaveDonations() {
       currencyPills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       selectedCurrency = pill.getAttribute('data-currency');
-      updateAmountChips(selectedCurrency);
-    });
-  });
-
-  // Amount chip selection
-  amountChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      amountChips.forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      const amt = chip.getAttribute('data-amount');
-      if (amt === 'custom') {
-        if (customAmountWrap) customAmountWrap.style.display = 'block';
-        if (customAmountInput) customAmountInput.focus();
-        selectedAmount = customAmountInput ? customAmountInput.value : '';
-      } else {
-        if (customAmountWrap) customAmountWrap.style.display = 'none';
-        selectedAmount = amt;
-      }
-      updateSubmitBtnText();
+      updateCurrencyDisplay(selectedCurrency);
     });
   });
 
@@ -1209,7 +1226,8 @@ function initFlutterwaveDonations() {
     const config = currencyPresets[selectedCurrency] || currencyPresets.USD;
     const num = parseFloat(selectedAmount);
     const formattedAmt = selectedAmount && !isNaN(num) ? `${config.symbol}${num.toLocaleString()}` : (selectedAmount ? `${config.symbol}${selectedAmount}` : '');
-    submitBtn.innerHTML = `<span>Proceed to Pay ${formattedAmt} with Flutterwave</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+    const freqLabel = selectedFrequency === 'monthly' ? ' Monthly' : '';
+    submitBtn.innerHTML = `<span>Proceed to Pay ${formattedAmt}${freqLabel}</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
   }
 
   function resetSubmitBtn() {
@@ -1268,6 +1286,7 @@ function initFlutterwaveDonations() {
         amount: numericAmount,
         currency: selectedCurrency,
         program: program,
+        frequency: selectedFrequency,
         status: 'initiated'
       };
 
