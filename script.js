@@ -1114,7 +1114,14 @@ function initFlutterwaveDonations() {
 
   let selectedCurrency = 'USD';
   let selectedAmount = '50';
-  const currencySymbols = { USD: '$', NGN: '₦', MWK: 'MK', GBP: '£', EUR: '€' };
+  
+  const currencyPresets = {
+    USD: { symbol: '$', presets: [10, 25, 50, 100, 250] },
+    GBP: { symbol: '£', presets: [10, 25, 50, 100, 250] },
+    EUR: { symbol: '€', presets: [10, 25, 50, 100, 250] },
+    NGN: { symbol: '₦', presets: [5000, 15000, 30000, 75000, 150000] },
+    MWK: { symbol: 'MK ', presets: [10000, 25000, 50000, 100000, 250000] }
+  };
 
   // Open Modal trigger for any .open-donate-modal or [href="#donate"] button
   document.querySelectorAll('.open-donate-modal, a[href="#donate"]').forEach(btn => {
@@ -1135,13 +1142,38 @@ function initFlutterwaveDonations() {
     if (e.target === modal) closeModal();
   });
 
+  // Function to update preset amount chips when currency changes
+  function updateAmountChips(curr) {
+    const config = currencyPresets[curr] || currencyPresets.USD;
+    const nonCustomChips = Array.from(amountChips).filter(c => c.getAttribute('data-amount') !== 'custom');
+
+    nonCustomChips.forEach((chip, index) => {
+      if (config.presets[index] !== undefined) {
+        const val = config.presets[index];
+        chip.setAttribute('data-amount', val);
+        chip.textContent = `${config.symbol}${val.toLocaleString()}`;
+      }
+    });
+
+    const activeChip = Array.from(amountChips).find(c => c.classList.contains('active'));
+    if (activeChip) {
+      const amt = activeChip.getAttribute('data-amount');
+      if (amt === 'custom') {
+        selectedAmount = customAmountInput ? customAmountInput.value : '';
+      } else {
+        selectedAmount = amt;
+      }
+    }
+    updateSubmitBtnText();
+  }
+
   // Currency selection
   currencyPills.forEach(pill => {
     pill.addEventListener('click', () => {
       currencyPills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       selectedCurrency = pill.getAttribute('data-currency');
-      updateSubmitBtnText();
+      updateAmountChips(selectedCurrency);
     });
   });
 
@@ -1172,9 +1204,17 @@ function initFlutterwaveDonations() {
 
   function updateSubmitBtnText() {
     if (!submitBtn) return;
-    const symbol = currencySymbols[selectedCurrency] || '$';
-    const finalAmt = selectedAmount ? `${symbol}${selectedAmount}` : '';
-    submitBtn.innerHTML = `<span>Proceed to Pay ${finalAmt} with Flutterwave</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+    const config = currencyPresets[selectedCurrency] || currencyPresets.USD;
+    const num = parseFloat(selectedAmount);
+    const formattedAmt = selectedAmount && !isNaN(num) ? `${config.symbol}${num.toLocaleString()}` : (selectedAmount ? `${config.symbol}${selectedAmount}` : '');
+    submitBtn.innerHTML = `<span>Proceed to Pay ${formattedAmt} with Flutterwave</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+  }
+
+  function resetSubmitBtn() {
+    if (!submitBtn) return;
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+    updateSubmitBtnText();
   }
 
   // Submit payment to Flutterwave SDK
@@ -1208,9 +1248,17 @@ function initFlutterwaveDonations() {
         return;
       }
 
+      // Immediate visual loading feedback & disable double submission
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.8';
+      submitBtn.innerHTML = `<span>Opening Secure Gateway...</span> <svg class="spin-loader" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+
+      // Safety reset timer (unlocks button after 6 seconds)
+      const loadSafetyTimer = setTimeout(resetSubmitBtn, 6000);
+
       // Trigger Flutterwave Payment Modal
       FlutterwaveCheckout({
-        public_key: 'FLWPUBK_TEST-a720df545b739665bc751bb9e54d6824-X', // Configurable Public Key Placeholder
+        public_key: 'FLWPUBK_TEST-7dd02dc60a4a28b80ba3d0ca27ec3887-X', // Flutterwave Test Public Key
         tx_ref: 'TRBB-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
         amount: numericAmount,
         currency: selectedCurrency,
@@ -1225,11 +1273,15 @@ function initFlutterwaveDonations() {
           logo: fixAssetPath('images/tr_logo.webp')
         },
         callback: function (data) {
+          clearTimeout(loadSafetyTimer);
+          resetSubmitBtn();
           console.log('Payment complete', data);
           closeModal();
           alert(`Thank you, ${name}! Your donation of ${selectedCurrency} ${numericAmount} to Tender Roots Beyond Borders Inc. was successful.\nTransaction Ref: ${data.transaction_id || data.tx_ref}`);
         },
         onclose: function() {
+          clearTimeout(loadSafetyTimer);
+          resetSubmitBtn();
           console.log('Payment modal closed');
         }
       });

@@ -2636,6 +2636,19 @@ select.donation-form-control option,
   box-shadow: 0 10px 35px rgba(245, 158, 11, 0.6);
   background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
 }
+.flutterwave-btn-submit:disabled {
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+@keyframes trbbSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.spin-loader {
+  animation: trbbSpin 0.8s linear infinite;
+}
 
 .flutterwave-security-foot {
   margin-top: 1.25rem;
