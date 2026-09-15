@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadTransactions() {
     try {
       const res = await fetch('../api/transactions');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       allTransactions = data.transactions || [];
     } catch (e) {
@@ -283,10 +284,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let messages = [];
     try {
       const res = await fetch('../api/donor-messages/history');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       messages = data.messages || [];
     } catch (e) {
-      messages = [];
+      const local = localStorage.getItem('trbb_donor_messages_log');
+      if (local) messages = JSON.parse(local);
+      else messages = [];
     }
 
     const tbody = document.getElementById('message-history-tbody');
@@ -345,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadSiteContent() {
     try {
       const res = await fetch('../api/content');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       if (data.content && data.content.impactCounters) {
         document.getElementById('cms-edit-children').value = data.content.impactCounters.childrenSponsored || 1250;
@@ -353,7 +358,21 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('cms-edit-goal').value = data.content.impactCounters.fundsRaisedGoalUSD || 100000;
         document.getElementById('cms-edit-announcement').value = data.content.announcementBar?.text || '';
       }
-    } catch (e) {}
+    } catch (e) {
+      const local = localStorage.getItem('trbb_site_content');
+      if (local) {
+        try {
+          const content = JSON.parse(local);
+          if (content.impactCounters) {
+            document.getElementById('cms-edit-children').value = content.impactCounters.childrenSponsored || 1250;
+            document.getElementById('cms-edit-programs').value = content.impactCounters.activePrograms || 4;
+            document.getElementById('cms-edit-communities').value = content.impactCounters.communitiesServed || 18;
+            document.getElementById('cms-edit-goal').value = content.impactCounters.fundsRaisedGoalUSD || 100000;
+            document.getElementById('cms-edit-announcement').value = content.announcementBar?.text || '';
+          }
+        } catch (err) {}
+      }
+    }
   }
 
   async function saveSiteContent() {
@@ -388,6 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let inquiries = [];
     try {
       const res = await fetch('../api/contact/messages');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       inquiries = data.inquiries || [];
     } catch (e) {
@@ -422,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadTeamMembers() {
     try {
       const res = await fetch('../api/team');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       allTeamMembers = data.team || [];
     } catch (e) {
@@ -710,6 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadVolunteerApplications() {
     try {
       const res = await fetch('../api/volunteers');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       allVolunteers = data.applications || [];
     } catch (e) {
@@ -806,6 +828,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadMediaItems() {
     try {
       const res = await fetch('../api/media');
+      if (!res.ok) throw new Error('API unavailable');
       const data = await res.json();
       allMediaItems = data.media || [];
     } catch (e) {
