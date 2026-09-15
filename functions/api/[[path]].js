@@ -174,7 +174,7 @@ function verifyAdminAuth(request) {
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
-  const path = url.pathname.replace(/^\/api\/?/, '');
+  const path = url.pathname.replace(/^\/api\/?/, '').replace(/\/$/, '');
   const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for') || '127.0.0.1';
 
   // Enable CORS headers

@@ -1471,11 +1471,14 @@ async function loadDynamicTeamMembers() {
   let team = [];
   try {
     const res = await fetch(fixAssetPath('api/team'));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     team = data.team || [];
   } catch (err) {
     const local = localStorage.getItem('trbb_team_members');
-    if (local) team = JSON.parse(local);
+    if (local) {
+      try { team = JSON.parse(local); } catch (e) {}
+    }
   }
 
   if (!team || team.length === 0) return;
@@ -1502,11 +1505,14 @@ async function loadDynamicMediaItems() {
   let media = [];
   try {
     const res = await fetch(fixAssetPath('api/media'));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     media = data.media || [];
   } catch (err) {
     const local = localStorage.getItem('trbb_media_items');
-    if (local) media = JSON.parse(local);
+    if (local) {
+      try { media = JSON.parse(local); } catch (e) {}
+    }
   }
 
   if (!media || media.length === 0) return;
