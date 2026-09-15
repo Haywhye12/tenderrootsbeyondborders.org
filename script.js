@@ -1256,10 +1256,36 @@ function initFlutterwaveDonations() {
       // Safety reset timer (unlocks button after 6 seconds)
       const loadSafetyTimer = setTimeout(resetSubmitBtn, 6000);
 
+      const currentTxRef = 'TRBB-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+      // Record INITIATED transaction in CMS API / Local Log
+      const initPayload = {
+        tx_ref: currentTxRef,
+        name: name,
+        email: email,
+        amount: numericAmount,
+        currency: selectedCurrency,
+        program: program,
+        status: 'initiated'
+      };
+
+      try {
+        fetch(fixAssetPath('api/transactions/initiate'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(initPayload)
+        }).catch(() => {});
+
+        // Local storage backup for offline dev
+        const localLog = JSON.parse(localStorage.getItem('trbb_transactions_log') || '[]');
+        localLog.unshift({ ...initPayload, createdAt: new Date().toISOString() });
+        localStorage.setItem('trbb_transactions_log', JSON.stringify(localLog));
+      } catch (e) {}
+
       // Trigger Flutterwave Payment Modal
       FlutterwaveCheckout({
         public_key: 'FLWPUBK_TEST-7dd02dc60a4a28b80ba3d0ca27ec3887-X', // Flutterwave Test Public Key
-        tx_ref: 'TRBB-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+        tx_ref: currentTxRef,
         amount: numericAmount,
         currency: selectedCurrency,
         payment_options: 'card, mobilemoney, ussd, banktransfer',
@@ -1276,8 +1302,25 @@ function initFlutterwaveDonations() {
           clearTimeout(loadSafetyTimer);
           resetSubmitBtn();
           console.log('Payment complete', data);
+
+          // Record SUCCESS status in CMS API / Local Log
+          const flwRef = data.transaction_id || data.flw_ref || data.tx_ref;
+          try {
+            fetch(fixAssetPath('api/transactions/update'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tx_ref: currentTxRef, status: 'success', flw_ref: flwRef })
+            }).catch(() => {});
+
+            const localLog = JSON.parse(localStorage.getItem('trbb_transactions_log') || '[]');
+            const item = localLog.find(t => t.tx_ref === currentTxRef);
+            if (item) { item.status = 'success'; item.flw_ref = flwRef; }
+            else { localLog.unshift({ ...initPayload, status: 'success', flw_ref: flwRef, createdAt: new Date().toISOString() }); }
+            localStorage.setItem('trbb_transactions_log', JSON.stringify(localLog));
+          } catch (e) {}
+
           closeModal();
-          alert(`Thank you, ${name}! Your donation of ${selectedCurrency} ${numericAmount} to Tender Roots Beyond Borders Inc. was successful.\nTransaction Ref: ${data.transaction_id || data.tx_ref}`);
+          alert(`Thank you, ${name}! Your donation of ${selectedCurrency} ${numericAmount} to Tender Roots Beyond Borders Inc. was successful.\nTransaction Ref: ${flwRef}`);
         },
         onclose: function() {
           clearTimeout(loadSafetyTimer);

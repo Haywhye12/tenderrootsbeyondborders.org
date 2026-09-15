@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tender Roots Beyond Borders – Admin CMS Portal</title>
+  <link rel="icon" type="image/webp" href="../images/tr_logo.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="cms.css">
+</head>
+<body>
+
+  <!-- AUTH OVERLAY (Shown if not logged in) -->
+  <div class="cms-auth-overlay" id="auth-overlay">
+    <div class="cms-auth-card">
+      <img src="../images/tr_logo.webp" alt="Tender Roots Logo" class="cms-auth-logo">
+      <h2 class="cms-auth-title">Admin CMS Portal</h2>
+      <p class="cms-auth-sub">Tender Roots Beyond Borders Inc.</p>
+      
+      <form id="auth-form">
+        <div class="cms-form-group">
+          <label for="admin-password">Enter Admin Passcode</label>
+          <input type="password" id="admin-password" class="cms-input" placeholder="••••••••••••" required autofocus>
+        </div>
+        <button type="submit" class="cms-btn" style="width: 100%;">
+          <span>Unlock Dashboard</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- HEADER NAVBAR -->
+  <header class="cms-header">
+    <a href="../index.html" class="cms-brand" target="_blank">
+      <img src="../images/tr_logo.webp" alt="TRBB Logo">
+      <div class="cms-brand-text">Tender Roots <span class="cms-brand-badge">Cloudflare CMS</span></div>
+    </a>
+
+    <nav class="cms-nav-tabs">
+      <button type="button" class="cms-tab-btn active" data-tab="tab-overview">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Overview</span>
+      </button>
+
+      <button type="button" class="cms-tab-btn" data-tab="tab-transactions">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        <span>Transactions</span>
+      </button>
+
+      <button type="button" class="cms-tab-btn" data-tab="tab-messaging">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        <span>Donor Messaging</span>
+      </button>
+
+      <button type="button" class="cms-tab-btn" data-tab="tab-pages">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <span>Page Manager</span>
+      </button>
+
+      <button type="button" class="cms-tab-btn" data-tab="tab-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <button type="button" id="cms-logout-btn" class="cms-btn cms-btn-outline" style="padding: 0.5rem 0.9rem; font-size: 0.8rem;">
+      Logout
+    </button>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="cms-main">
+
+    <!-- TAB 1: OVERVIEW -->
+    <section id="tab-overview" class="cms-tab-content">
+      <div class="cms-stats-grid">
+        <div class="cms-stat-card">
+          <span class="cms-stat-label">Total Raised (USD)</span>
+          <span class="cms-stat-val" id="stat-raised-usd">$0.00</span>
+          <span class="cms-stat-sub">From successful Flutterwave payments</span>
+        </div>
+
+        <div class="cms-stat-card amber">
+          <span class="cms-stat-label">Total Raised (NGN)</span>
+          <span class="cms-stat-val" id="stat-raised-ngn">₦0.00</span>
+          <span class="cms-stat-sub">From local Nigerian donations</span>
+        </div>
+
+        <div class="cms-stat-card blue">
+          <span class="cms-stat-label">Total Transactions</span>
+          <span class="cms-stat-val" id="stat-total-tx">0</span>
+          <span class="cms-stat-sub"><span id="stat-success-count" style="color:#34D399; font-weight:700;">0</span> Success | <span id="stat-init-count" style="color:#FBBF24; font-weight:700;">0</span> Initiated</span>
+        </div>
+
+        <div class="cms-stat-card red">
+          <span class="cms-stat-label">Failed / Cancelled</span>
+          <span class="cms-stat-val" id="stat-failed-count">0</span>
+          <span class="cms-stat-sub">Failed payment attempts</span>
+        </div>
+      </div>
+
+      <div class="cms-card-panel">
+        <div class="cms-panel-head">
+          <h3 class="cms-panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            Recent Live Activity
+          </h3>
+          <button type="button" class="cms-btn cms-btn-outline" id="refresh-overview-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Refresh Live Data</button>
+        </div>
+        
+        <div class="cms-table-responsive">
+          <table class="cms-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Tx Reference</th>
+                <th>Donor Name & Email</th>
+                <th>Amount</th>
+                <th>Program Initiative</th>
+                <th>Date & Time</th>
+              </tr>
+            </thead>
+            <tbody id="overview-recent-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: TRANSACTIONS -->
+    <section id="tab-transactions" class="cms-tab-content" style="display: none;">
+      <div class="cms-card-panel">
+        <div class="cms-panel-head">
+          <h3 class="cms-panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+            Transaction Ledger
+          </h3>
+
+          <div class="cms-filter-bar">
+            <select id="filter-status" class="cms-select">
+              <option value="all">All Statuses (Initiated, Success, Failed)</option>
+              <option value="success">Success Only</option>
+              <option value="initiated">Initiated / Pending</option>
+              <option value="failed">Failed / Cancelled</option>
+            </select>
+
+            <input type="text" id="search-tx-input" class="cms-input" placeholder="Search donor name, email, or tx_ref..." style="width: 260px;">
+
+            <button type="button" id="export-csv-btn" class="cms-btn cms-btn-amber" style="padding: 0.6rem 1rem; font-size: 0.85rem;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export CSV Report
+            </button>
+          </div>
+        </div>
+
+        <div class="cms-table-responsive">
+          <table class="cms-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Tx Ref</th>
+                <th>Donor Name</th>
+                <th>Donor Email</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Program Initiative</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="transactions-ledger-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: DONOR MESSAGING -->
+    <section id="tab-messaging" class="cms-tab-content" style="display: none;">
+      <div class="cms-grid-2col">
+        <!-- Left: Composer -->
+        <div class="cms-card-panel">
+          <div class="cms-panel-head">
+            <h3 class="cms-panel-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              Compose Donor Message
+            </h3>
+          </div>
+
+          <form id="donor-message-form">
+            <div class="cms-form-group">
+              <label>Select Quick Template</label>
+              <div class="template-pill-list">
+                <button type="button" class="template-pill" data-template="receipt">Tax Receipt & Thank You</button>
+                <button type="button" class="template-pill" data-template="impact">Program Impact Update</button>
+                <button type="button" class="template-pill" data-template="greetings">Donor Appreciation</button>
+              </div>
+            </div>
+
+            <div class="cms-form-group">
+              <label for="msg-recipient-type">Target Recipients</label>
+              <select id="msg-recipient-type" class="cms-select" style="width: 100%;">
+                <option value="All Donors">All Registered Donors</option>
+                <option value="Successful Donors">Successful Donors Only</option>
+                <option value="Educational Sponsorship">Educational Sponsorship Donors</option>
+                <option value="Vocational Training">Vocational Training Donors</option>
+              </select>
+            </div>
+
+            <div class="cms-form-group">
+              <label for="msg-subject">Email Subject Line</label>
+              <input type="text" id="msg-subject" class="cms-input" placeholder="e.g. Thank You for Empowering Children Across Borders!" required>
+            </div>
+
+            <div class="cms-form-group">
+              <label for="msg-body">Email Body (Markdown or Plain Text)</label>
+              <textarea id="msg-body" class="cms-input" placeholder="Write your update or thank you message here..." required></textarea>
+            </div>
+
+            <button type="submit" class="cms-btn" style="width: 100%;">
+              <span>Dispatch Message to Donors</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Message History Log -->
+        <div class="cms-card-panel">
+          <div class="cms-panel-head">
+            <h3 class="cms-panel-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Sent Broadcast History
+            </h3>
+          </div>
+
+          <div class="cms-table-responsive">
+            <table class="cms-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Target Group</th>
+                  <th>Recipients</th>
+                  <th>Date Sent</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="message-history-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: PAGE CONTENT MANAGER -->
+    <section id="tab-pages" class="cms-tab-content" style="display: none;">
+      <div class="cms-card-panel">
+        <div class="cms-panel-head">
+          <h3 class="cms-panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+            Live Site Content & Impact Metrics Editor
+          </h3>
+          <button type="button" id="save-content-btn" class="cms-btn">Save Changes to Website</button>
+        </div>
+
+        <div class="cms-grid-2col">
+          <div class="cms-form-group">
+            <label for="cms-edit-children">Children & Vulnerable Sponsored</label>
+            <input type="number" id="cms-edit-children" class="cms-input" value="1250">
+          </div>
+
+          <div class="cms-form-group">
+            <label for="cms-edit-programs">Active Programs Count</label>
+            <input type="number" id="cms-edit-programs" class="cms-input" value="4">
+          </div>
+
+          <div class="cms-form-group">
+            <label for="cms-edit-communities">Communities Served</label>
+            <input type="number" id="cms-edit-communities" class="cms-input" value="18">
+          </div>
+
+          <div class="cms-form-group">
+            <label for="cms-edit-goal">Funds Raised Target Goal ($ USD)</label>
+            <input type="number" id="cms-edit-goal" class="cms-input" value="100000">
+          </div>
+        </div>
+
+        <div class="cms-form-group" style="margin-top: 1rem;">
+          <label for="cms-edit-announcement">Top Banner Announcement Text</label>
+          <input type="text" id="cms-edit-announcement" class="cms-input" value="🎉 IRS-Approved 501(c)(3) Nonprofit: All donations are 100% tax-deductible in the United States!">
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: SETTINGS -->
+    <section id="tab-settings" class="cms-tab-content" style="display: none;">
+      <div class="cms-card-panel" style="max-width: 650px;">
+        <div class="cms-panel-head">
+          <h3 class="cms-panel-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            System & Webhook Settings
+          </h3>
+        </div>
+
+        <div class="cms-form-group">
+          <label>Cloudflare Webhook URL (Give to Flutterwave)</label>
+          <input type="text" class="cms-input" value="https://tenderrootsbeyondborders.org/api/webhooks/flutterwave" readonly>
+          <p style="font-size: 0.75rem; color: var(--cms-muted); margin-top: 0.4rem;">Paste this URL into your Flutterwave Dashboard under <i>Settings > API Keys &amp; Webhooks</i>.</p>
+        </div>
+
+        <div class="cms-form-group">
+          <label>Flutterwave Secret Hash</label>
+          <input type="text" class="cms-input" value="TRBB_SECRET_HASH_2026">
+        </div>
+
+        <button type="button" class="cms-btn" onclick="alert('Settings saved successfully!');">Save Settings</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="cms.js"></script>
+</body>
+</html>
