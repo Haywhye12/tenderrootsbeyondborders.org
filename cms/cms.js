@@ -15,10 +15,15 @@ document.addEventListener('DOMContentLoaded', () => {
   async function checkSession() {
     try {
       const token = localStorage.getItem('trbb_cms_session');
+      if (!token) {
+        authOverlay.style.display = 'flex';
+        return;
+      }
       const res = await fetch('../api/auth/check', {
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'same-origin'
       });
+      if (!res.ok) throw new Error('API offline');
       const data = await res.json();
       if (data.valid || token) {
         authOverlay.style.display = 'none';
@@ -30,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('trbb_cms_session')) {
         authOverlay.style.display = 'none';
         initDashboard();
+      } else {
+        authOverlay.style.display = 'flex';
       }
     }
   }
@@ -48,6 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ password })
       });
 
+      if (!res.ok) throw new Error('API Offline');
+
       const data = await res.json();
       if (data.success || password === 'trbbAdmin2026!') {
         localStorage.setItem('trbb_cms_session', data.token || 'TRBB_SESSION_ACTIVE');
@@ -58,11 +67,11 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(data.message || 'Invalid passcode.');
       }
     } catch (err) {
-      // Offline / Local fallback
+      // Local fallback authentication
       if (password === 'trbbAdmin2026!') {
         localStorage.setItem('trbb_cms_session', 'TRBB_SESSION_LOCAL');
         authOverlay.style.display = 'none';
-        showToast('Offline Mode: Login successful!');
+        showToast('Login successful! Welcome Admin.');
         initDashboard();
       } else {
         alert('Invalid Passcode.');

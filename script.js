@@ -1469,30 +1469,48 @@ async function loadDynamicTeamMembers() {
   if (!grid) return;
 
   let team = [];
-  try {
-    const res = await fetch(fixAssetPath('api/team'));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    team = data.team || [];
-  } catch (err) {
-    const local = localStorage.getItem('trbb_team_members');
-    if (local) {
-      try { team = JSON.parse(local); } catch (e) {}
-    }
+  // 1. Check local storage first (instant & eliminates 404 console noise on static hosts)
+  const local = localStorage.getItem('trbb_team_members');
+  if (local) {
+    try { team = JSON.parse(local); } catch (e) {}
+  }
+
+  // 2. Fallback to API if local cache is empty
+  if (!team || team.length === 0) {
+    try {
+      const res = await fetch(fixAssetPath('api/team'));
+      if (res.ok) {
+        const data = await res.json();
+        team = data.team || [];
+        if (team.length > 0) {
+          localStorage.setItem('trbb_team_members', JSON.stringify(team));
+        }
+      }
+    } catch (err) {}
   }
 
   if (!team || team.length === 0) return;
 
-  grid.innerHTML = team.map(m => `
-    <div class="card-glass team-card reveal" data-category="${m.category || 'board'}">
+  // Filter out any members already statically present in HTML
+  const existingCards = Array.from(grid.children).map(c => c.querySelector('.team-name')?.textContent.trim()).filter(Boolean);
+  const newMembers = team.filter(m => m.name && !existingCards.includes(m.name.trim()));
+  
+  if (newMembers.length === 0) return;
+
+  newMembers.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'card-glass team-card reveal';
+    card.setAttribute('data-category', m.category || 'board');
+    card.innerHTML = `
       <div class="team-photo-wrap" style="width:120px; height:120px; margin:0 auto 1rem auto; overflow:hidden; border-radius:50%; border:3px solid var(--primary-emerald);">
-        <img src="${m.image || '../images/tr_logo.webp'}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;">
+        <img src="${fixAssetPath(m.image || 'images/tr_logo.webp')}" alt="${m.name}" style="width:100%; height:100%; object-fit:cover;">
       </div>
       <h4 class="team-name" style="font-size: 1.15rem; color: #FFF; margin-top: 0.5rem;">${m.name}</h4>
       <span class="team-role" style="font-size: 0.85rem; color: var(--primary-emerald); font-weight:700;">${m.role} ${m.location ? '• ' + m.location : ''}</span>
       <p class="team-bio-snippet" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; line-height:1.5;">${m.bio || ''}</p>
-    </div>
-  `).join('');
+    `;
+    grid.appendChild(card);
+  });
 }
 
 /* ==========================================================================
@@ -1503,22 +1521,30 @@ async function loadDynamicMediaItems() {
   if (!grid) return;
 
   let media = [];
-  try {
-    const res = await fetch(fixAssetPath('api/media'));
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    media = data.media || [];
-  } catch (err) {
-    const local = localStorage.getItem('trbb_media_items');
-    if (local) {
-      try { media = JSON.parse(local); } catch (e) {}
-    }
+  // 1. Check local storage first (instant & eliminates 404 console noise on static hosts)
+  const local = localStorage.getItem('trbb_media_items');
+  if (local) {
+    try { media = JSON.parse(local); } catch (e) {}
+  }
+
+  // 2. Fallback to API if local cache is empty
+  if (!media || media.length === 0) {
+    try {
+      const res = await fetch(fixAssetPath('api/media'));
+      if (res.ok) {
+        const data = await res.json();
+        media = data.media || [];
+        if (media.length > 0) {
+          localStorage.setItem('trbb_media_items', JSON.stringify(media));
+        }
+      }
+    } catch (err) {}
   }
 
   if (!media || media.length === 0) return;
 
-  // Render any dynamic items that are newly added via CMS (ids starting with media-)
-  const dynamicItems = media.filter(m => m.id && m.id.startsWith('media-'));
+  // Render any dynamic items that are newly added via CMS (ids starting with media- / MEDIA-)
+  const dynamicItems = media.filter(m => m.id && (m.id.startsWith('media-') || m.id.startsWith('MEDIA-')));
   if (dynamicItems.length === 0) return;
 
   dynamicItems.forEach(m => {
