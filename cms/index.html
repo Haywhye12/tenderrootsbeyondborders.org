@@ -110,6 +110,9 @@
       </div>
     </aside>
 
+    <!-- SIDEBAR OVERLAY (For Mobile Backdrop) -->
+    <div class="cms-sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- MAIN RIGHT CONTENT WRAPPER -->
     <div class="cms-main-wrapper">
       
@@ -123,7 +126,10 @@
         </div>
 
         <div class="cms-topbar-right">
-          <a href="../index.html" target="_blank" class="cms-btn cms-btn-outline" style="padding: 0.45rem 0.85rem; font-size: 0.82rem;">View Live Website ↗</a>
+          <a href="../index.html" target="_blank" class="cms-btn cms-btn-outline cms-live-btn">
+            <span class="live-btn-desktop">View Live Website ↗</span>
+            <span class="live-btn-mobile">Live ↗</span>
+          </a>
           <span class="cms-brand-badge">Cloudflare Active</span>
         </div>
       </header>
@@ -442,8 +448,8 @@
                 </div>
 
                 <div class="cms-form-group">
-                  <label for="media-description">Description / Impact Note</label>
-                  <textarea id="media-description" class="cms-input" placeholder="Enter short mission summary..."></textarea>
+                  <label for="media-caption">Description / Impact Note</label>
+                  <textarea id="media-caption" class="cms-input" placeholder="Enter short mission summary..."></textarea>
                 </div>
 
                 <!-- WebP Cover Photo Upload & Compressor -->

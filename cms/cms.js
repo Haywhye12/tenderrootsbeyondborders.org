@@ -91,12 +91,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const sidebar = document.getElementById('cms-sidebar');
   const sidebarToggle = document.getElementById('sidebar-toggle');
+  const sidebarOverlay = document.getElementById('sidebar-overlay');
   const currentTabTitle = document.getElementById('current-tab-title');
+
+  function closeMobileSidebar() {
+    if (sidebar) sidebar.classList.remove('active');
+    if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+  }
 
   if (sidebarToggle) {
     sidebarToggle.addEventListener('click', () => {
       if (sidebar) sidebar.classList.toggle('active');
+      if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
     });
+  }
+
+  if (sidebarOverlay) {
+    sidebarOverlay.addEventListener('click', closeMobileSidebar);
   }
 
   // Tab Navigation
@@ -114,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetContent) targetContent.style.display = 'block';
 
       // Close mobile sidebar after selecting tab
-      if (sidebar && window.innerWidth <= 992) {
-        sidebar.classList.remove('active');
+      if (window.innerWidth <= 992) {
+        closeMobileSidebar();
       }
     });
   });
