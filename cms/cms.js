@@ -73,6 +73,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const passwordInput = document.getElementById('admin-password');
     const password = passwordInput ? passwordInput.value : '';
 
+    if (!apiAvailable) {
+      // Local fallback authentication without 404 network fetch
+      if (password === 'trbbAdmin2026!') {
+        localStorage.setItem('trbb_cms_session', 'TRBB_SESSION_LOCAL');
+        authOverlay.style.display = 'none';
+        showToast('Login successful! Welcome Admin.');
+        initDashboard();
+      } else {
+        alert('Invalid Passcode.');
+      }
+      return;
+    }
+
     try {
       const res = await fetch('../api/auth/login', {
         method: 'POST',
@@ -93,7 +106,6 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(data.message || 'Invalid passcode.');
       }
     } catch (err) {
-      // Local fallback authentication
       if (password === 'trbbAdmin2026!') {
         localStorage.setItem('trbb_cms_session', 'TRBB_SESSION_LOCAL');
         authOverlay.style.display = 'none';
@@ -107,9 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Logout
   logoutBtn.addEventListener('click', async () => {
-    try {
-      await fetch('../api/auth/logout', { method: 'POST', credentials: 'same-origin' });
-    } catch (e) {}
+    if (apiAvailable) {
+      try {
+        await fetch('../api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      } catch (e) {}
+    }
     localStorage.removeItem('trbb_cms_session');
     authOverlay.style.display = 'flex';
     showToast('Logged out of CMS session.');
