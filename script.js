@@ -1406,7 +1406,7 @@ function initFlutterwaveDonations() {
 
       // Trigger Flutterwave Payment Modal
       FlutterwaveCheckout({
-        public_key: 'FLWPUBK_TEST-7dd02dc60a4a28b80ba3d0ca27ec3887-X', // Flutterwave Test Public Key
+        public_key: 'FLWPUBK-0c79591ef5e93288da87778c41fd6296-X', // Flutterwave Live Public Key
         tx_ref: currentTxRef,
         amount: numericAmount,
         currency: selectedCurrency,
