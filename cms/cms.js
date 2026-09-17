@@ -9,35 +9,61 @@ document.addEventListener('DOMContentLoaded', () => {
   const tabBtns = document.querySelectorAll('.cms-tab-btn');
   const tabContents = document.querySelectorAll('.cms-tab-content');
 
+  let apiAvailable = false;
+
+  function updateStatusBadge(isOnline) {
+    const badge = document.querySelector('.cms-brand-badge');
+    if (badge) {
+      if (isOnline) {
+        badge.textContent = 'Cloudflare API Active';
+        badge.style.background = 'rgba(16, 185, 129, 0.15)';
+        badge.style.color = '#34D399';
+      } else {
+        badge.textContent = 'Local Storage Mode';
+        badge.style.background = 'rgba(245, 158, 11, 0.15)';
+        badge.style.color = '#FBBF24';
+      }
+    }
+  }
+
   // Check Session via API Check + Cookie / LocalStorage
   checkSession();
 
   async function checkSession() {
+    const token = localStorage.getItem('trbb_cms_session');
+    if (!token) {
+      authOverlay.style.display = 'flex';
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('trbb_cms_session');
-      if (!token) {
-        authOverlay.style.display = 'flex';
-        return;
-      }
       const res = await fetch('../api/auth/check', {
         headers: { 'Authorization': `Bearer ${token}` },
         credentials: 'same-origin'
       });
-      if (!res.ok) throw new Error('API offline');
-      const data = await res.json();
-      if (data.valid || token) {
-        authOverlay.style.display = 'none';
-        initDashboard();
+      if (res.ok) {
+        const data = await res.json();
+        apiAvailable = true;
+        updateStatusBadge(true);
+        if (data.valid || token) {
+          authOverlay.style.display = 'none';
+          initDashboard();
+          return;
+        }
       } else {
-        authOverlay.style.display = 'flex';
+        apiAvailable = false;
+        updateStatusBadge(false);
       }
     } catch (e) {
-      if (localStorage.getItem('trbb_cms_session')) {
-        authOverlay.style.display = 'none';
-        initDashboard();
-      } else {
-        authOverlay.style.display = 'flex';
-      }
+      apiAvailable = false;
+      updateStatusBadge(false);
+    }
+
+    if (localStorage.getItem('trbb_cms_session')) {
+      authOverlay.style.display = 'none';
+      initDashboard();
+    } else {
+      authOverlay.style.display = 'flex';
     }
   }
 
@@ -165,13 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fetch Transactions from API or LocalStorage
   async function loadTransactions() {
-    try {
-      const res = await fetch('../api/transactions');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      allTransactions = data.transactions || [];
-    } catch (e) {
-      // Fallback local storage
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/transactions');
+        if (res.ok) {
+          const data = await res.json();
+          allTransactions = data.transactions || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_transactions_log');
       if (local) {
         allTransactions = JSON.parse(local);
@@ -293,12 +321,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Donor Messaging Center
   async function loadMessageHistory() {
     let messages = [];
-    try {
-      const res = await fetch('../api/donor-messages/history');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      messages = data.messages || [];
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/donor-messages/history');
+        if (res.ok) {
+          const data = await res.json();
+          messages = data.messages || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_donor_messages_log');
       if (local) messages = JSON.parse(local);
       else messages = [];
@@ -358,18 +389,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Site Content Editor
   async function loadSiteContent() {
-    try {
-      const res = await fetch('../api/content');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      if (data.content && data.content.impactCounters) {
-        document.getElementById('cms-edit-children').value = data.content.impactCounters.childrenSponsored || 1250;
-        document.getElementById('cms-edit-programs').value = data.content.impactCounters.activePrograms || 4;
-        document.getElementById('cms-edit-communities').value = data.content.impactCounters.communitiesServed || 18;
-        document.getElementById('cms-edit-goal').value = data.content.impactCounters.fundsRaisedGoalUSD || 100000;
-        document.getElementById('cms-edit-announcement').value = data.content.announcementBar?.text || '';
-      }
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/content');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.content && data.content.impactCounters) {
+            document.getElementById('cms-edit-children').value = data.content.impactCounters.childrenSponsored || 1250;
+            document.getElementById('cms-edit-programs').value = data.content.impactCounters.activePrograms || 4;
+            document.getElementById('cms-edit-communities').value = data.content.impactCounters.communitiesServed || 18;
+            document.getElementById('cms-edit-goal').value = data.content.impactCounters.fundsRaisedGoalUSD || 100000;
+            document.getElementById('cms-edit-announcement').value = data.content.announcementBar?.text || '';
+          }
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_site_content');
       if (local) {
         try {
@@ -416,12 +450,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Contact Inquiries Loader
   async function loadContactInquiries() {
     let inquiries = [];
-    try {
-      const res = await fetch('../api/contact/messages');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      inquiries = data.inquiries || [];
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/contact/messages');
+        if (res.ok) {
+          const data = await res.json();
+          inquiries = data.inquiries || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_contact_inquiries_log');
       if (local) inquiries = JSON.parse(local);
     }
@@ -451,12 +488,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let allTeamMembers = [];
 
   async function loadTeamMembers() {
-    try {
-      const res = await fetch('../api/team');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      allTeamMembers = data.team || [];
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/team');
+        if (res.ok) {
+          const data = await res.json();
+          allTeamMembers = data.team || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_team_members');
       if (local) allTeamMembers = JSON.parse(local);
       else {
@@ -740,12 +780,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let allVolunteers = [];
 
   async function loadVolunteerApplications() {
-    try {
-      const res = await fetch('../api/volunteers');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      allVolunteers = data.applications || [];
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/volunteers');
+        if (res.ok) {
+          const data = await res.json();
+          allVolunteers = data.applications || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_volunteer_applications');
       if (local) allVolunteers = JSON.parse(local);
       else {
@@ -837,12 +880,15 @@ document.addEventListener('DOMContentLoaded', () => {
   let allMediaItems = [];
 
   async function loadMediaItems() {
-    try {
-      const res = await fetch('../api/media');
-      if (!res.ok) throw new Error('API unavailable');
-      const data = await res.json();
-      allMediaItems = data.media || [];
-    } catch (e) {
+    if (apiAvailable) {
+      try {
+        const res = await fetch('../api/media');
+        if (res.ok) {
+          const data = await res.json();
+          allMediaItems = data.media || [];
+        }
+      } catch (e) {}
+    } else {
       const local = localStorage.getItem('trbb_media_items');
       if (local) allMediaItems = JSON.parse(local);
       else {
