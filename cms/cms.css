@@ -752,17 +752,111 @@ textarea.cms-input {
     box-sizing: border-box;
   }
 
-  .cms-table th, 
-  .cms-table td {
-    padding: 0.75rem 0.85rem;
-    font-size: 0.82rem;
-    white-space: nowrap;
+  /* ==========================================================================
+     MOBILE TABLE-TO-CARD TRANSFORMATION (≤ 768px)
+     ========================================================================== */
+  .cms-table-responsive {
+    overflow: visible;
+    border: none;
+    background: transparent;
   }
 
-  .cms-table-responsive {
-    -webkit-overflow-scrolling: touch;
-    border-radius: 10px;
-    border: 1px solid var(--cms-card-border);
+  .cms-table {
+    display: block;
+    width: 100%;
+    border: none;
+  }
+
+  .cms-table thead {
+    display: none; /* Hide standard header row on mobile */
+  }
+
+  .cms-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .cms-table tr {
+    display: flex;
+    flex-direction: column;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.15rem 1.25rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .cms-table tr:hover {
+    border-color: rgba(16, 185, 129, 0.4);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.45);
+    transform: translateY(-2px);
+  }
+
+  .cms-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.88rem;
+    white-space: normal;
+    text-align: right;
+    gap: 0.85rem;
+    word-break: break-word;
+  }
+
+  .cms-table td:first-child {
+    padding-top: 0;
+  }
+
+  .cms-table td:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+    padding-top: 0.75rem;
+  }
+
+  /* Render label on the left from data-label */
+  .cms-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: var(--cms-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Empty state message */
+  .cms-table td[colspan] {
+    display: block;
+    text-align: center;
+    padding: 2.5rem 1rem;
+    border: none;
+  }
+  .cms-table td[colspan]::before {
+    display: none;
+  }
+
+  /* Action buttons row alignment */
+  .cms-table td[data-label="Actions"],
+  .cms-table td[data-label="Status Update"] {
+    justify-content: space-between;
+  }
+
+  .cms-table td[data-label="Actions"] button {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Image / Photo formatting inside card */
+  .cms-table td[data-label="Photo"] img,
+  .cms-table td[data-label="Cover"] img {
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
   }
 
   .cms-toast {

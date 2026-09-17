@@ -257,12 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (recentTbody) {
       recentTbody.innerHTML = allTransactions.slice(0, 6).map(t => `
         <tr>
-          <td><span class="status-badge ${t.status}">${t.status}</span></td>
-          <td><code>${t.tx_ref}</code></td>
-          <td><strong>${t.name}</strong><br><small style="color:var(--cms-muted);">${t.email}</small></td>
-          <td><strong>${t.currency} ${parseFloat(t.amount).toLocaleString()}</strong></td>
-          <td>${t.program}</td>
-          <td>${new Date(t.createdAt).toLocaleString()}</td>
+          <td data-label="Status"><span class="status-badge ${t.status}">${t.status}</span></td>
+          <td data-label="Tx Reference"><code>${t.tx_ref}</code></td>
+          <td data-label="Donor"><strong>${t.name}</strong><br><small style="color:var(--cms-muted);">${t.email}</small></td>
+          <td data-label="Amount"><strong>${t.currency} ${parseFloat(t.amount).toLocaleString()}</strong></td>
+          <td data-label="Program">${t.program}</td>
+          <td data-label="Date">${new Date(t.createdAt).toLocaleString()}</td>
         </tr>
       `).join('');
     }
@@ -297,14 +297,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = list.map(t => `
       <tr>
-        <td><span class="status-badge ${t.status}">${t.status}</span></td>
-        <td><code>${t.tx_ref}</code></td>
-        <td><strong>${t.name}</strong></td>
-        <td>${t.email}</td>
-        <td><strong>${t.currency} ${parseFloat(t.amount).toLocaleString()}</strong></td>
-        <td>${t.currency}</td>
-        <td>${t.program}</td>
-        <td>${new Date(t.createdAt).toLocaleDateString()}</td>
+        <td data-label="Status"><span class="status-badge ${t.status}">${t.status}</span></td>
+        <td data-label="Tx Ref"><code>${t.tx_ref}</code></td>
+        <td data-label="Donor Name"><strong>${t.name}</strong></td>
+        <td data-label="Donor Email">${t.email}</td>
+        <td data-label="Amount"><strong>${t.currency} ${parseFloat(t.amount).toLocaleString()}</strong></td>
+        <td data-label="Currency">${t.currency}</td>
+        <td data-label="Program">${t.program}</td>
+        <td data-label="Date">${new Date(t.createdAt).toLocaleDateString()}</td>
       </tr>
     `).join('');
   }
@@ -353,11 +353,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tbody) {
       tbody.innerHTML = messages.map(m => `
         <tr>
-          <td><strong>${m.subject}</strong></td>
-          <td>${m.recipientType}</td>
-          <td>${m.recipientCount} Donors</td>
-          <td>${new Date(m.sentAt).toLocaleDateString()}</td>
-          <td><span class="status-badge success">${m.status}</span></td>
+          <td data-label="Subject"><strong>${m.subject}</strong></td>
+          <td data-label="Recipient">${m.recipientType}</td>
+          <td data-label="Donors Count">${m.recipientCount} Donors</td>
+          <td data-label="Date">${new Date(m.sentAt).toLocaleDateString()}</td>
+          <td data-label="Status"><span class="status-badge success">${m.status}</span></td>
         </tr>
       `).join('');
     }
@@ -487,11 +487,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = inquiries.map(item => `
       <tr>
-        <td><span class="status-badge success">Received</span></td>
-        <td><strong>${item.name}</strong></td>
-        <td><a href="mailto:${item.email}" style="color:var(--cms-primary); font-weight:600;">${item.email}</a></td>
-        <td style="max-width:380px; line-height:1.5;">${item.message}</td>
-        <td>${new Date(item.submittedAt).toLocaleString()}</td>
+        <td data-label="Status"><span class="status-badge success">Received</span></td>
+        <td data-label="Donor Name"><strong>${item.name}</strong></td>
+        <td data-label="Email"><a href="mailto:${item.email}" style="color:var(--cms-primary); font-weight:600;">${item.email}</a></td>
+        <td data-label="Message" style="max-width:380px; line-height:1.5;">${item.message}</td>
+        <td data-label="Date">${new Date(item.submittedAt).toLocaleString()}</td>
       </tr>
     `).join('');
   }
@@ -613,11 +613,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = allTeamMembers.map(m => `
       <tr>
-        <td><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.name}" style="width:40px; height:40px; object-fit:cover; border-radius:50%;"></td>
-        <td><strong>${m.name}</strong><br><small style="color:var(--cms-muted);">${m.role}</small></td>
-        <td><span class="status-badge ${m.category === 'board' ? 'success' : 'initiated'}">${m.category}</span></td>
-        <td>${m.location || 'Global'}</td>
-        <td>
+        <td data-label="Photo"><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.name}" style="width:40px; height:40px; object-fit:cover; border-radius:50%;"></td>
+        <td data-label="Name & Role"><strong>${m.name}</strong><br><small style="color:var(--cms-muted);">${m.role}</small></td>
+        <td data-label="Category"><span class="status-badge ${m.category === 'board' ? 'success' : 'initiated'}">${m.category}</span></td>
+        <td data-label="Location">${m.location || 'Global'}</td>
+        <td data-label="Actions">
           <button type="button" class="cms-btn cms-btn-outline edit-team-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem;">Edit</button>
           <button type="button" class="cms-btn cms-btn-outline delete-team-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-color:var(--cms-red); color:#F87171;">Delete</button>
         </td>
@@ -846,13 +846,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = allVolunteers.map(v => `
       <tr>
-        <td><span class="status-badge ${v.status === 'Approved' ? 'success' : v.status === 'Contacted' ? 'initiated' : 'failed'}">${v.status || 'Pending'}</span></td>
-        <td><strong>${v.fullName}</strong><br><small style="color:var(--cms-muted);">${v.type || 'Volunteer'}</small></td>
-        <td><a href="mailto:${v.email}" style="color:var(--cms-primary); font-weight:600;">${v.email}</a><br><small style="color:var(--cms-muted);">${v.phone || ''}</small></td>
-        <td><strong>${v.interest || 'General'}</strong></td>
-        <td>${v.location || 'Global'}</td>
-        <td>${new Date(v.submittedAt || Date.now()).toLocaleDateString()}</td>
-        <td>
+        <td data-label="Status"><span class="status-badge ${v.status === 'Approved' ? 'success' : v.status === 'Contacted' ? 'initiated' : 'failed'}">${v.status || 'Pending'}</span></td>
+        <td data-label="Applicant"><strong>${v.fullName}</strong><br><small style="color:var(--cms-muted);">${v.type || 'Volunteer'}</small></td>
+        <td data-label="Contact"><a href="mailto:${v.email}" style="color:var(--cms-primary); font-weight:600;">${v.email}</a><br><small style="color:var(--cms-muted);">${v.phone || ''}</small></td>
+        <td data-label="Interest"><strong>${v.interest || 'General'}</strong></td>
+        <td data-label="Location">${v.location || 'Global'}</td>
+        <td data-label="Date">${new Date(v.submittedAt || Date.now()).toLocaleDateString()}</td>
+        <td data-label="Status Update">
           <select class="cms-input update-vol-status" data-id="${v.id}" style="padding:0.2rem 0.5rem; font-size:0.75rem; width:auto; display:inline-block;">
             <option value="Pending" ${v.status === 'Pending' ? 'selected' : ''}>Pending</option>
             <option value="Contacted" ${v.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
@@ -951,12 +951,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tbody.innerHTML = allMediaItems.map(m => `
       <tr>
-        <td><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.title}" style="width:50px; height:50px; object-fit:cover; border-radius:6px;"></td>
-        <td><strong>${m.title}</strong><br><small style="color:var(--cms-muted);">${m.location || ''}</small></td>
-        <td><span class="status-badge ${m.category === 'malawi' ? 'initiated' : m.category === 'nigeria' ? 'success' : 'failed'}">${m.category}</span></td>
-        <td style="max-width:250px; font-size:0.8rem; line-height:1.4;">${m.caption || ''}</td>
-        <td>${m.publishedAt || new Date().toLocaleDateString()}</td>
-        <td>
+        <td data-label="Cover"><img src="${m.image || '../images/tr_logo.webp'}" alt="${m.title}" style="width:50px; height:50px; object-fit:cover; border-radius:6px;"></td>
+        <td data-label="Mission Title"><strong>${m.title}</strong><br><small style="color:var(--cms-muted);">${m.location || ''}</small></td>
+        <td data-label="Category"><span class="status-badge ${m.category === 'malawi' ? 'initiated' : m.category === 'nigeria' ? 'success' : 'failed'}">${m.category}</span></td>
+        <td data-label="Impact Note" style="max-width:250px; font-size:0.8rem; line-height:1.4;">${m.caption || ''}</td>
+        <td data-label="Date">${m.publishedAt || new Date().toLocaleDateString()}</td>
+        <td data-label="Actions">
           <button type="button" class="cms-btn cms-btn-outline edit-media-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem;">Edit</button>
           <button type="button" class="cms-btn cms-btn-outline delete-media-btn" data-id="${m.id}" style="padding:0.3rem 0.6rem; font-size:0.75rem; border-color:var(--cms-red); color:#F87171;">Delete</button>
         </td>
