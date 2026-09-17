@@ -2745,6 +2745,60 @@ select.donation-form-control option,
   padding-top: 1rem;
 }
 
+/* Payment Gateway Selector */
+.gateway-toggle-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  margin-top: 0.4rem;
+}
+.gateway-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.86rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.gateway-btn:hover {
+  color: #FFF;
+  background: rgba(255, 255, 255, 0.06);
+}
+.gateway-btn.active {
+  background: rgba(16, 185, 129, 0.18);
+  color: #FFF;
+  border-color: rgba(52, 211, 153, 0.5);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+.gateway-btn[data-gateway="paypal"].active {
+  background: rgba(0, 112, 186, 0.25);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #38BDF8;
+  box-shadow: 0 4px 14px rgba(0, 112, 186, 0.3);
+}
+
+.flutterwave-btn-submit.btn-paypal-active {
+  background: linear-gradient(135deg, #FFC439 0%, #FFB400 100%);
+  color: #003087;
+  box-shadow: 0 6px 25px rgba(255, 196, 57, 0.45);
+}
+.flutterwave-btn-submit.btn-paypal-active:hover {
+  background: linear-gradient(135deg, #FFD166 0%, #FFC439 100%);
+  box-shadow: 0 10px 35px rgba(255, 196, 57, 0.65);
+}
+
+
 /* ==========================================================================
    MOBILE-OPTIMIZED REDESIGN FOR DONATION MODAL (≤ 576px)
    ========================================================================== */

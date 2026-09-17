@@ -1169,10 +1169,13 @@ function initFlutterwaveDonations() {
   const donorEmailInput = document.getElementById('donation-donor-email');
   const amountLabel = document.getElementById('donation-amount-label');
   const frequencyBtns = document.querySelectorAll('.frequency-btn');
+  const gatewayBtns = document.querySelectorAll('.gateway-btn');
+  const securityFootText = document.getElementById('security-foot-text');
 
   let selectedCurrency = 'USD';
   let selectedAmount = customAmountInput ? customAmountInput.value : '';
   let selectedFrequency = 'once';
+  let selectedGateway = 'flutterwave';
   
   const currencyPresets = {
     USD: { symbol: '$' },
@@ -1181,6 +1184,28 @@ function initFlutterwaveDonations() {
     NGN: { symbol: '₦' },
     MWK: { symbol: 'MK ' }
   };
+
+  // Gateway Selection (Flutterwave vs PayPal)
+  gatewayBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      gatewayBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedGateway = btn.getAttribute('data-gateway') || 'flutterwave';
+
+      if (selectedGateway === 'paypal') {
+        if (submitBtn) submitBtn.classList.add('btn-paypal-active');
+        if (securityFootText) {
+          securityFootText.textContent = 'Secured by PayPal. 256-Bit SSL Encryption. Supports PayPal accounts, Credit & Debit Cards.';
+        }
+      } else {
+        if (submitBtn) submitBtn.classList.remove('btn-paypal-active');
+        if (securityFootText) {
+          securityFootText.textContent = '256-Bit SSL Encrypted. Supports Cards, Apple Pay, Google Pay, Mobile Money & Bank Transfer via Flutterwave.';
+        }
+      }
+      updateSubmitBtnText();
+    });
+  });
 
   // Frequency Selection ("Give Once" vs "Give Monthly")
   frequencyBtns.forEach(btn => {
@@ -1227,7 +1252,8 @@ function initFlutterwaveDonations() {
     const num = parseFloat(selectedAmount);
     const formattedAmt = selectedAmount && !isNaN(num) ? `${config.symbol}${num.toLocaleString()}` : (selectedAmount ? `${config.symbol}${selectedAmount}` : '');
     const freqLabel = selectedFrequency === 'monthly' ? ' Monthly' : '';
-    submitBtn.innerHTML = `<span>Proceed to Pay ${formattedAmt}${freqLabel}</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
+    const gatewayLabel = selectedGateway === 'paypal' ? ' with PayPal' : '';
+    submitBtn.innerHTML = `<span>Proceed to Pay ${formattedAmt}${freqLabel}${gatewayLabel}</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>`;
   }
 
   function resetSubmitBtn() {
@@ -1237,7 +1263,7 @@ function initFlutterwaveDonations() {
     updateSubmitBtnText();
   }
 
-  // Submit payment to Flutterwave SDK
+  // Submit payment to selected gateway (Flutterwave or PayPal)
   if (submitBtn) {
     submitBtn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -1263,6 +1289,80 @@ function initFlutterwaveDonations() {
         return;
       }
 
+      // ==========================================
+      // PAYPAL PAYMENT GATEWAY BRANCH
+      // ==========================================
+      if (selectedGateway === 'paypal') {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.8';
+        submitBtn.innerHTML = `<span>Connecting to PayPal...</span> <svg class="spin-loader" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83"/></svg>`;
+
+        const currentTxRef = 'TRBB-PP-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+
+        const initPayload = {
+          tx_ref: currentTxRef,
+          name: name,
+          email: email,
+          amount: numericAmount,
+          currency: selectedCurrency,
+          program: program,
+          frequency: selectedFrequency,
+          gateway: 'paypal',
+          status: 'initiated'
+        };
+
+        try {
+          fetch(fixAssetPath('api/transactions/initiate'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(initPayload)
+          }).catch(() => {});
+
+          const localLog = JSON.parse(localStorage.getItem('trbb_transactions_log') || '[]');
+          localLog.unshift({ ...initPayload, createdAt: new Date().toISOString() });
+          localStorage.setItem('trbb_transactions_log', JSON.stringify(localLog));
+        } catch (e) {}
+
+        // Construct hidden PayPal form and submit to PayPal checkout
+        const paypalForm = document.createElement('form');
+        paypalForm.method = 'POST';
+        paypalForm.action = 'https://www.paypal.com/cgi-bin/webscr';
+        paypalForm.target = '_blank';
+
+        // Use USD fallback if currency is not directly supported by PayPal
+        const paypalCurrency = (selectedCurrency === 'NGN' || selectedCurrency === 'MWK') ? 'USD' : selectedCurrency;
+
+        const params = {
+          cmd: '_donations',
+          business: 'info@tenderrootsbeyondborders.org', // Organization PayPal Account
+          item_name: `Tender Roots Beyond Borders - ${program} (${name})`,
+          amount: numericAmount,
+          currency_code: paypalCurrency,
+          no_shipping: '1',
+          return: window.location.origin + window.location.pathname + '?status=success&gateway=paypal&ref=' + currentTxRef,
+          cancel_return: window.location.origin + window.location.pathname + '?status=cancel&gateway=paypal&ref=' + currentTxRef,
+          custom: currentTxRef
+        };
+
+        for (const [k, v] of Object.entries(params)) {
+          const inp = document.createElement('input');
+          inp.type = 'hidden';
+          inp.name = k;
+          inp.value = v;
+          paypalForm.appendChild(inp);
+        }
+
+        document.body.appendChild(paypalForm);
+        paypalForm.submit();
+        document.body.removeChild(paypalForm);
+
+        setTimeout(resetSubmitBtn, 3500);
+        return;
+      }
+
+      // ==========================================
+      // FLUTTERWAVE PAYMENT GATEWAY BRANCH
+      // ==========================================
       if (typeof FlutterwaveCheckout !== 'function') {
         alert('Flutterwave payment gateway is loading. Please check your internet connection and try again.');
         return;
@@ -1271,7 +1371,7 @@ function initFlutterwaveDonations() {
       // Immediate visual loading feedback & disable double submission
       submitBtn.disabled = true;
       submitBtn.style.opacity = '0.8';
-      submitBtn.innerHTML = `<span>Opening Secure Gateway...</span> <svg class="spin-loader" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`;
+      submitBtn.innerHTML = `<span>Opening Secure Gateway...</span> <svg class="spin-loader" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83"/></svg>`;
 
       // Safety reset timer (unlocks button after 6 seconds)
       const loadSafetyTimer = setTimeout(resetSubmitBtn, 6000);
@@ -1287,6 +1387,7 @@ function initFlutterwaveDonations() {
         currency: selectedCurrency,
         program: program,
         frequency: selectedFrequency,
+        gateway: 'flutterwave',
         status: 'initiated'
       };
 
@@ -1340,7 +1441,6 @@ function initFlutterwaveDonations() {
             localStorage.setItem('trbb_transactions_log', JSON.stringify(localLog));
           } catch (e) {}
 
-          closeModal();
           alert(`Thank you, ${name}! Your donation of ${selectedCurrency} ${numericAmount} to Tender Roots Beyond Borders Inc. was successful.\nTransaction Ref: ${flwRef}`);
         },
         onclose: function() {

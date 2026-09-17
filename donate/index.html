@@ -197,10 +197,10 @@
             </p>
 
             <div class="donate-trust-features">
-              <div class="trust-feature-item">
+              <!-- <div class="trust-feature-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>Instant Official Tax Receipt Emailed Immediately</span>
-              </div>
+              </div> -->
               <div class="trust-feature-item">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 <span>Direct Field Program Impact (USA, Nigeria, Malawi)</span>
@@ -216,30 +216,6 @@
             </div>
           </div>
 
-          <!-- Impact Breakdown Summary -->
-          <div class="card-glass" style="margin-bottom: 1.5rem; background: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.3);">
-            <h4 style="color: #FFF; font-size: 1.15rem; margin-bottom: 0.4rem;">What Your Donation Accomplishes</h4>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">Every dollar donated goes directly into field operations, education, and shelter:</p>
-            
-            <div class="impact-breakdown-grid">
-              <div class="impact-card-item">
-                <div class="impact-card-amt">$25</div>
-                <div class="impact-card-desc">Provides school uniforms, textbooks, and backpacks for 1 orphan.</div>
-              </div>
-              <div class="impact-card-item">
-                <div class="impact-card-amt">$50</div>
-                <div class="impact-card-desc">Funds 1 full month of academic tuition &amp; daily nutritional meals.</div>
-              </div>
-              <div class="impact-card-item">
-                <div class="impact-card-amt">$100</div>
-                <div class="impact-card-desc">Supplies a widow with a vocational starter kit (sewing machine / trade tools).</div>
-              </div>
-              <div class="impact-card-item">
-                <div class="impact-card-amt">$250</div>
-                <div class="impact-card-desc">Covers 3 months of emergency shelter room, board &amp; medical care.</div>
-              </div>
-            </div>
-          </div>
 
           <!-- Direct Wire & Bank Transfer Details Box (Commented Out as requested)
           <div class="card-glass">
@@ -292,6 +268,21 @@
               <p style="font-size: 0.88rem; color: var(--text-muted);">Choose payment frequency, currency, and amount below.</p>
             </div>
 
+            <!-- Payment Gateway Selector -->
+            <div class="donation-form-group">
+              <label>Select Payment Gateway</label>
+              <div class="gateway-toggle-wrap">
+                <button type="button" class="gateway-btn active" data-gateway="flutterwave">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                  <span>Cards / Bank Transfer</span>
+                </button>
+                <button type="button" class="gateway-btn" data-gateway="paypal">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .761-.646h6.843c2.616 0 4.673.666 5.86 1.897 1.157 1.2 1.488 2.872.934 4.722-.72 2.408-2.316 4.195-4.502 5.034-1.077.412-2.345.617-3.77.617H8.816a.77.77 0 0 0-.761.647l-1.004 5.346zm11.758-13.882c-.886-.917-2.45-1.425-4.417-1.425H8.761a.256.256 0 0 0-.253.216l-2.096 11.16a.256.256 0 0 0 .253.303h2.607a.256.256 0 0 0 .253-.215l.763-4.062a.77.77 0 0 1 .761-.647h1.658c2.628 0 4.707-.978 5.485-3.578.472-1.579.231-2.793-.564-3.616z"/></svg>
+                  <span>PayPal</span>
+                </button>
+              </div>
+            </div>
+
             <!-- Frequency Toggle (Give Once / Monthly) -->
             <div class="frequency-toggle-wrap">
               <button type="button" class="frequency-btn active" data-frequency="once">
@@ -338,7 +329,7 @@
 
             <!-- Donor Email -->
             <div class="donation-form-group">
-              <label for="donation-donor-email">Your Email Address (for instant tax receipt) *</label>
+              <label for="donation-donor-email">Your Email Address *</label>
               <input type="email" id="donation-donor-email" class="donation-form-control" placeholder="e.g. sarah@example.com" required>
             </div>
 
@@ -349,9 +340,9 @@
             </button>
 
             <!-- Security Badge Footer -->
-            <div class="flutterwave-security-foot">
+            <div class="flutterwave-security-foot" id="gateway-security-foot">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-              <span>Secured by Flutterwave (Cards, Apple Pay, Google Pay, Mobile Money, Bank Transfer)</span>
+              <span id="security-foot-text">256-Bit SSL Encrypted. Supports Cards, Apple Pay, Google Pay, Mobile Money &amp; Bank Transfer via Flutterwave.</span>
             </div>
 
           </div>
