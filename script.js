@@ -1620,6 +1620,19 @@ function initContactForm() {
   });
 }
 
+// Helper to detect static dev environment (VS Code Live Server, GitHub Pages, file://)
+function isStaticEnvironment() {
+  const hostname = window.location.hostname;
+  const port = window.location.port;
+  if (window.location.protocol === 'file:') return true;
+  if (hostname.endsWith('github.io')) return true;
+  // Local static servers (e.g. VS Code Live Server on 5500/5501 or general static dev servers without backend)
+  if ((hostname === '127.0.0.1' || hostname === 'localhost') && port && port !== '8788' && port !== '8787') {
+    return true;
+  }
+  return false;
+}
+
 /* ==========================================================================
    24. DYNAMIC TEAM MEMBERS RENDERER
    ========================================================================== */
@@ -1634,8 +1647,8 @@ async function loadDynamicTeamMembers() {
     try { team = JSON.parse(local); } catch (e) {}
   }
 
-  // 2. Fallback to API if local cache is empty
-  if (!team || team.length === 0) {
+  // 2. Fallback to API only if not in a static dev server environment
+  if ((!team || team.length === 0) && !isStaticEnvironment()) {
     try {
       const res = await fetch(fixAssetPath('api/team'));
       if (res.ok) {
@@ -1686,8 +1699,8 @@ async function loadDynamicMediaItems() {
     try { media = JSON.parse(local); } catch (e) {}
   }
 
-  // 2. Fallback to API if local cache is empty
-  if (!media || media.length === 0) {
+  // 2. Fallback to API only if not in a static dev server environment
+  if ((!media || media.length === 0) && !isStaticEnvironment()) {
     try {
       const res = await fetch(fixAssetPath('api/media'));
       if (res.ok) {
