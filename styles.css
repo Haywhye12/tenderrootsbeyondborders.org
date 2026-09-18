@@ -392,7 +392,7 @@ h1, h2, h3, h4, h5, h6 {
   height: 130%;
   background-size: cover;
   background-position: center;
-  filter: brightness(0.35) contrast(1.15);
+  filter: brightness(0.65) contrast(1.08);
   will-change: transform;
   transform: translate3d(0, 0, 0);
   z-index: 1;
@@ -401,7 +401,7 @@ h1, h2, h3, h4, h5, h6 {
 .page-hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(7, 13, 11, 0.6) 0%, var(--bg-dark) 100%);
+  background: linear-gradient(180deg, rgba(7, 13, 11, 0.3) 0%, rgba(7, 13, 11, 0.6) 65%, var(--bg-dark) 100%);
   z-index: 2;
 }
 
@@ -522,7 +522,7 @@ h1, h2, h3, h4, h5, h6 {
   background-image: url('images/hero_bg.webp');
   background-size: cover;
   background-position: center;
-  filter: brightness(0.4) contrast(1.15);
+  filter: brightness(0.72) contrast(1.05);
   will-change: transform;
   transform: translate3d(0, 0, 0);
   z-index: 1;
@@ -531,7 +531,8 @@ h1, h2, h3, h4, h5, h6 {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(7, 13, 11, 0.3) 0%, var(--bg-dark) 90%);
+  background: radial-gradient(ellipse at 50% 35%, rgba(7, 13, 11, 0.2) 0%, rgba(7, 13, 11, 0.58) 60%, var(--bg-dark) 100%),
+              linear-gradient(180deg, rgba(13, 27, 42, 0.25) 0%, transparent 40%, rgba(7, 13, 11, 0.75) 100%);
   z-index: 2;
 }
 
@@ -548,15 +549,15 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.6rem;
   padding: 0.5rem 1.25rem;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.35);
   backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--accent-mint);
   margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
   animation: pulseGlow 3s infinite alternate;
 }
 
@@ -574,15 +575,16 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 1.5rem;
-  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  text-shadow: 0 4px 25px rgba(0, 0, 0, 0.95), 0 2px 8px rgba(0, 0, 0, 0.85);
 }
 
 .hero-subtitle {
   font-size: clamp(1.05rem, 1.8vw, 1.3rem);
-  color: var(--text-muted);
+  color: #E2E8F0;
   max-width: 780px;
   margin: 0 auto 2.5rem;
   font-weight: 400;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
 }
 
 .hero-cta-group {
