@@ -1031,22 +1031,30 @@ function initHeroWordRotator() {
   const target = document.getElementById('hero-rotating-word');
   if (!target) return;
 
-  const words = [
-    'Hope to Sprout Again',
-    'Education for Orphans',
-    'Haven Respite Shelter',
-    'Vocational Skills Acquisition',
-    'Healthcare & Dignity'
+  const items = [
+    { text: 'Hope to Sprout Again', colorClass: 'rotator-gold' },
+    { text: 'Education for Orphans', colorClass: 'rotator-cyan' },
+    { text: 'Haven Respite Shelter', colorClass: 'rotator-mint' },
+    { text: 'Vocational Skills Acquisition', colorClass: 'rotator-orange' },
+    { text: 'Healthcare & Dignity', colorClass: 'rotator-pink' }
   ];
+  const allColorClasses = ['rotator-gold', 'rotator-cyan', 'rotator-mint', 'rotator-orange', 'rotator-pink'];
   let currentIndex = 0;
+
+  // Initialize first item
+  target.classList.remove(...allColorClasses);
+  target.classList.add(items[0].colorClass);
 
   setInterval(() => {
     target.classList.add('fade-out');
     setTimeout(() => {
-      currentIndex = (currentIndex + 1) % words.length;
-      target.textContent = words[currentIndex];
-      target.classList.remove('fade-out');
-      target.classList.add('fade-in');
+      currentIndex = (currentIndex + 1) % items.length;
+      const currentItem = items[currentIndex];
+
+      target.textContent = currentItem.text;
+      target.classList.remove('fade-out', ...allColorClasses);
+      target.classList.add('fade-in', currentItem.colorClass);
+
       setTimeout(() => {
         target.classList.remove('fade-in');
       }, 450);

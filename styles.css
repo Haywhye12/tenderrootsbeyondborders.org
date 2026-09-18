@@ -726,15 +726,36 @@ h1, h2, h3, h4, h5, h6 {
 }
 .hero-rotator-text {
   display: inline-block;
-  background: linear-gradient(135deg, #FFF6D1 0%, #FDE047 22%, #F59E0B 58%, #EA580C 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 14px rgba(245, 158, 11, 0.5));
-  animation: textShimmer 5s ease-in-out infinite;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
-  font-weight: 800;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+  color: #FFE600;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.92), 0 0 28px rgba(255, 230, 0, 0.85);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease, color 0.3s ease, text-shadow 0.3s ease;
+  -webkit-text-fill-color: initial !important;
+  background: none !important;
+  filter: none !important;
+}
+
+/* Vibrant Bright Neon Colors for Each Rotator Mission */
+.hero-rotator-text.rotator-gold {
+  color: #FFE600 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(255, 230, 0, 0.9) !important;
+}
+.hero-rotator-text.rotator-cyan {
+  color: #00F0FF !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(0, 240, 255, 0.9) !important;
+}
+.hero-rotator-text.rotator-mint {
+  color: #00FF88 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(0, 255, 136, 0.9) !important;
+}
+.hero-rotator-text.rotator-orange {
+  color: #FFAA00 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(255, 170, 0, 0.9) !important;
+}
+.hero-rotator-text.rotator-pink {
+  color: #FF3388 !important;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 28px rgba(255, 51, 136, 0.9) !important;
 }
 .hero-rotator-text.fade-out {
   opacity: 0;
