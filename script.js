@@ -1334,7 +1334,7 @@ function initFlutterwaveDonations() {
 
         const params = {
           cmd: '_donations',
-          business: 'info@tenderrootsbeyondborders.org', // Organization PayPal Account
+          business: 'tenderrootsbeyondborders@gmail.com', // Organization PayPal Account
           item_name: `Tender Roots Beyond Borders - ${program} (${name})`,
           amount: numericAmount,
           currency_code: paypalCurrency,
