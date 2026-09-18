@@ -89,6 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSectionInView();
   initMagneticButtons();
   initHeroParticles();
+  initHeroWordRotator();
   initImageRevealTilt();
   initStaggeredReveal();
   initCursorGlow();
@@ -937,17 +938,17 @@ function initMagneticButtons() {
 }
 
 /* ==========================================================================
-   17. HERO FLOATING PARTICLES — tiny emerald sparks that drift upward
+   17. HERO FLOATING PARTICLES — luminous emerald & golden motes with glowing halo
    ========================================================================== */
 function initHeroParticles() {
   const hero = document.querySelector('.hero');
   if (!hero) return;
 
-  const PARTICLE_COUNT = 22;
+  const PARTICLE_COUNT = 36;
   const canvas = document.createElement('canvas');
   canvas.style.cssText = `
     position:absolute; inset:0; width:100%; height:100%;
-    pointer-events:none; z-index:2; opacity:0.55;
+    pointer-events:none; z-index:2; opacity:0.75;
   `;
   hero.style.position = 'relative';
   hero.appendChild(canvas);
@@ -966,41 +967,91 @@ function initHeroParticles() {
   const W = () => canvas.width  / DPR;
   const H = () => canvas.height / DPR;
 
-  const COLORS = ['rgba(16,185,129,', 'rgba(167,243,208,', 'rgba(245,158,11,'];
+  const COLORS = [
+    'rgba(16, 185, 129,',
+    'rgba(167, 243, 208,',
+    'rgba(52, 211, 153,',
+    'rgba(245, 158, 11,',
+    'rgba(253, 230, 138,'
+  ];
 
   const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
     x     : Math.random() * W(),
     y     : Math.random() * H(),
-    r     : Math.random() * 2.2 + 0.6,
-    vx    : (Math.random() - 0.5) * 0.3,
-    vy    : -(Math.random() * 0.55 + 0.2),
-    alpha : Math.random() * 0.55 + 0.15,
+    r     : Math.random() * 2.5 + 0.8,
+    sway  : Math.random() * Math.PI * 2,
+    swaySpeed: Math.random() * 0.03 + 0.01,
+    vy    : -(Math.random() * 0.45 + 0.18),
+    alpha : Math.random() * 0.65 + 0.2,
     color : COLORS[Math.floor(Math.random() * COLORS.length)],
   }));
 
   const draw = () => {
     ctx.clearRect(0, 0, W(), H());
     particles.forEach(p => {
+      // Soft radial firefly halo glow
+      const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 2.8);
+      grad.addColorStop(0, p.color + (p.alpha * 1.3) + ')');
+      grad.addColorStop(0.4, p.color + (p.alpha * 0.5) + ')');
+      grad.addColorStop(1, p.color + '0)');
+      
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.color + p.alpha + ')';
+      ctx.arc(p.x, p.y, p.r * 2.8, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
       ctx.fill();
 
-      p.x += p.vx;
-      p.y += p.vy;
-      p.alpha -= 0.0012;
+      // Sharp central core mote
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 0.75, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
 
-      if (p.y < -10 || p.alpha <= 0) {
+      p.sway += p.swaySpeed;
+      p.x += Math.sin(p.sway) * 0.35;
+      p.y += p.vy;
+      p.alpha -= 0.0008;
+
+      if (p.y < -15 || p.alpha <= 0 || p.x < -20 || p.x > W() + 20) {
         p.x     = Math.random() * W();
-        p.y     = H() + 10;
-        p.alpha = Math.random() * 0.55 + 0.15;
-        p.vy    = -(Math.random() * 0.55 + 0.2);
+        p.y     = H() + 15;
+        p.alpha = Math.random() * 0.65 + 0.2;
+        p.vy    = -(Math.random() * 0.45 + 0.18);
         p.color = COLORS[Math.floor(Math.random() * COLORS.length)];
       }
     });
     requestAnimationFrame(draw);
   };
   draw();
+}
+
+/* ==========================================================================
+   17B. HERO DYNAMIC WORD ROTATOR — smoothly cycles impact missions
+   ========================================================================== */
+function initHeroWordRotator() {
+  const target = document.getElementById('hero-rotating-word');
+  if (!target) return;
+
+  const words = [
+    'Hope to Sprout Again',
+    'Education for Orphans',
+    'Haven Respite Shelter',
+    'Vocational Skills Acquisition',
+    'Healthcare & Dignity'
+  ];
+  let currentIndex = 0;
+
+  setInterval(() => {
+    target.classList.add('fade-out');
+    setTimeout(() => {
+      currentIndex = (currentIndex + 1) % words.length;
+      target.textContent = words[currentIndex];
+      target.classList.remove('fade-out');
+      target.classList.add('fade-in');
+      setTimeout(() => {
+        target.classList.remove('fade-in');
+      }, 450);
+    }, 380);
+  }, 3400);
 }
 
 /* ==========================================================================
